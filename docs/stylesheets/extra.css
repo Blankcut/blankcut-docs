@@ -1,0 +1,66 @@
+/* BlankCut brand theming for Material for MkDocs.
+   Tokens mirror the frontend (dream-team/src/styles/global.css):
+   primary purple #4C44CB, dark #1a1a1a, radius 0.5rem, Overpass type.
+   Wired through Material's custom-color hooks (palette primary/accent: custom). */
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color:        #4c44cb;
+  --md-primary-fg-color--light: #6a5fe0;
+  --md-primary-fg-color--dark:  #3a33a8;
+  /* Text/icons sitting on the purple header. */
+  --md-primary-bg-color:        #ffffff;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.75);
+}
+
+[data-md-color-accent="custom"] {
+  --md-accent-fg-color:              #6a5fe0;
+  --md-accent-fg-color--transparent: rgba(76, 68, 203, 0.1);
+}
+
+:root {
+  --md-default-radius: 0.5rem;
+}
+
+/* Links: brand purple in light, brightened in dark for contrast. */
+[data-md-color-scheme="default"] {
+  --md-typeset-a-color: #4c44cb;
+}
+[data-md-color-scheme="slate"] {
+  --md-typeset-a-color: #9b93f5;
+  --md-accent-fg-color: #8a80f0;
+}
+
+/* --- Brand polish --- */
+
+/* Tighter, bolder headings to match the marketing site. */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+/* Rounded code blocks / cards per the brand radius. */
+.md-typeset pre > code,
+.md-typeset .highlight > pre,
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--md-default-radius);
+}
+
+/* Brand-tinted text selection. */
+::selection {
+  background: rgba(76, 68, 203, 0.22);
+}
+
+/* Logo sizing in the header. */
+.md-header__button.md-logo img {
+  height: 1.6rem;
+  width: auto;
+}
+
+/* Grid cards (home page) get a subtle brand hover. */
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 0 0 1px var(--md-accent-fg-color);
+}
