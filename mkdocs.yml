@@ -1,0 +1,58 @@
+site_name: BlankCut Docs
+site_description: Documentation for the BlankCut platform and its internal tools.
+site_url: https://docs.blankcut.com
+copyright: © Blank Cut
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - content.code.copy
+    - content.code.annotate
+    - search.suggest
+    - search.highlight
+    - toc.follow
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - BlankCut CLI:
+      - Overview & setup: cli/index.md
+      - Command reference: cli/commands.md
+      - Secrets: cli/secrets.md
+      - Supported stacks: cli/stacks.md
+  # Future product sections (e.g. Kubernetes MCP Server) get their own folder
+  # under docs/ and a block here.
