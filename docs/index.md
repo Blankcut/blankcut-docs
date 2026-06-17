@@ -1,32 +1,64 @@
+---
+hide:
+  - navigation
+  - toc
+---
+
+<div class="bc-hero" markdown>
+
+![](assets/logo.svg){ .bc-hero__logo }
+
 # BlankCut Docs
 
-Documentation for the BlankCut platform and the internal tools we build on top of it.
+Ship a GitHub repo all the way to production — builds, deploys, secrets, and
+monitoring — driven by the `blankcut` CLI.
 
-BlankCut takes a GitHub repository and runs it end-to-end: builds, releases into a
-dedicated Kubernetes namespace, manages its secrets, and keeps an eye on it once
-it's live. The `blankcut` CLI is how you and your coding agents drive that
-platform from a repo.
+[Get started](cli/index.md){ .md-button .md-button--primary }
+[Command reference](cli/commands.md){ .md-button }
 
-## Sections
+</div>
+
+Documentation for the BlankCut platform and the internal tools we build on top of
+it. BlankCut takes a repository and runs it end-to-end: builds, releases into a
+dedicated Kubernetes namespace, manages its secrets, and watches it once it's
+live. The `blankcut` CLI is how you and your coding agents drive that.
+
+## Explore
 
 <div class="grid cards" markdown>
 
-- **[BlankCut CLI](cli/index.md)**
+-   :material-console-line:{ .bc-card-icon } **[BlankCut CLI](cli/index.md)**
 
-    Install, configure, and use the `blankcut` CLI — scaffolding, validation,
-    secrets, promotion, and status.
+    ---
+
+    Install, configure, and use the CLI — scaffolding, validation, secrets,
+    promotion, and status.
+
+-   :material-shield-key-outline:{ .bc-card-icon } **[Secrets](cli/secrets.md)**
+
+    ---
+
+    The pull / push / diff / run lifecycle, the `.env.example` gate, and the hard
+    rule on never emitting values.
+
+-   :material-cube-outline:{ .bc-card-icon } **[Supported stacks](cli/stacks.md)**
+
+    ---
+
+    The platform contract: what we run, the backing services, and the rules every
+    app must follow.
 
 </div>
 
 !!! note "For coding agents"
-    If you're an LLM agent working in an onboarded repo, the repo's `CLAUDE.md`
-    is the binding source of truth for how to use the platform. These pages are
-    the public, browsable version of that guidance. Always run
-    `blankcut upgrade --check` at the start of a session — the CLI ships
-    frequently and command behavior changes between releases.
+    If you're an LLM agent working in an onboarded repo, that repo's `CLAUDE.md`
+    is the binding source of truth — these pages are its public, browsable
+    version. Always run `blankcut upgrade --check` at the start of a session: the
+    CLI ships frequently and command behavior changes between releases.
 
 ## Access
 
 The `blankcut` CLI is distributed as auth-gated GitHub Releases from a private
-repository. You need a GitHub account with access to the BlankCut organization to
-install it. These docs are public; the binary and platform internals are not.
+repository, so you need a GitHub account with access to the BlankCut organization
+to install it. **These docs are public; the binary and platform internals are
+not.**

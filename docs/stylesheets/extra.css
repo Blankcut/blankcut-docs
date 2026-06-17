@@ -32,12 +32,100 @@
 
 /* --- Brand polish --- */
 
-/* Tighter, bolder headings to match the marketing site. */
+/* Tighter, bolder, and darker headings — the defaults blend into the page. */
 .md-typeset h1,
 .md-typeset h2,
-.md-typeset h3 {
+.md-typeset h3,
+.md-typeset h4 {
   font-weight: 700;
   letter-spacing: -0.015em;
+}
+[data-md-color-scheme="default"] .md-typeset h1,
+[data-md-color-scheme="default"] .md-typeset h2,
+[data-md-color-scheme="default"] .md-typeset h3,
+[data-md-color-scheme="default"] .md-typeset h4 {
+  color: #1a1a1a; /* brand "Dark" — strong contrast on white */
+}
+[data-md-color-scheme="slate"] .md-typeset h1,
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3,
+[data-md-color-scheme="slate"] .md-typeset h4 {
+  color: #f3f3f7;
+}
+/* Subtle purple accent rule under section headings. */
+.md-typeset h2 {
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid rgba(76, 68, 203, 0.18);
+}
+
+/* Depth on the top bars instead of a flat fill. */
+.md-header {
+  background: linear-gradient(90deg, #4c44cb 0%, #3a33a8 100%);
+}
+.md-tabs {
+  background: #3a33a8;
+}
+
+/* Home hero. */
+.bc-hero {
+  margin: 0 0 2.5rem;
+  padding: 3.25rem 2rem 3rem;
+  border-radius: 0.9rem;
+  text-align: center;
+  color: #fff;
+  background:
+    radial-gradient(900px 320px at 50% -10%, rgba(255, 255, 255, 0.16), transparent 60%),
+    linear-gradient(135deg, #4c44cb 0%, #3a33a8 55%, #1a1a1a 100%);
+  box-shadow: 0 18px 40px -22px rgba(76, 68, 203, 0.65);
+}
+.bc-hero__logo {
+  height: 3rem;
+  width: auto;
+  margin: 0 auto 1.1rem;
+  display: block;
+  opacity: 0.97;
+}
+.md-typeset .bc-hero h1 {
+  color: #fff !important;
+  margin: 0 0 0.6rem;
+  font-size: 2.4rem;
+  line-height: 1.1;
+}
+.bc-hero p {
+  color: rgba(255, 255, 255, 0.86);
+  max-width: 40rem;
+  margin: 0 auto 1.6rem;
+}
+.md-typeset .bc-hero .md-button {
+  margin: 0.25rem;
+  border-radius: var(--md-default-radius);
+}
+.md-typeset .bc-hero .md-button--primary {
+  background: #fff;
+  color: #4c44cb;
+  border-color: #fff;
+}
+.md-typeset .bc-hero .md-button:not(.md-button--primary) {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+.md-typeset .bc-hero .md-button:hover {
+  transform: translateY(-1px);
+}
+
+/* Cards: icon accent + lift on hover. */
+.bc-card-icon {
+  color: var(--md-primary-fg-color);
+  font-size: 1.4rem;
+  vertical-align: -0.2rem;
+}
+.md-typeset .grid.cards > ul > li {
+  transition: border-color 120ms, box-shadow 120ms, transform 120ms;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 10px 24px -16px rgba(76, 68, 203, 0.7);
+  transform: translateY(-2px);
 }
 
 /* Rounded code blocks / cards per the brand radius. */
@@ -59,8 +147,8 @@
   width: auto;
 }
 
-/* Grid cards (home page) get a subtle brand hover. */
-.md-typeset .grid.cards > ul > li:hover {
-  border-color: var(--md-accent-fg-color);
-  box-shadow: 0 0 0 1px var(--md-accent-fg-color);
+/* Drop the generic "Made with Material for MkDocs" copyright bar; keep the
+   prev/next page navigation, which is genuinely useful. */
+.md-footer-meta {
+  display: none;
 }
