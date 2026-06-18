@@ -78,12 +78,42 @@
     linear-gradient(135deg, #4c44cb 0%, #3a33a8 55%, #1a1a1a 100%);
   box-shadow: 0 18px 40px -22px rgba(76, 68, 203, 0.65);
 }
-.bc-hero__logo {
-  height: 3rem;
+/* High specificity so it beats Material's `.md-typeset img` sizing. */
+.md-typeset .bc-hero img.bc-hero__logo {
+  height: 2.75rem;
   width: auto;
   margin: 0 auto 1.1rem;
   display: block;
   opacity: 0.97;
+}
+
+/* "blankcut" typed out with a blinking cursor — no code-highlight box. */
+.bc-type {
+  font-family: var(--md-code-font-family, "Overpass Mono", monospace);
+  color: #fff;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  width: 8ch; /* "blankcut" = 8 chars */
+  border-right: 0.12em solid currentColor;
+  animation:
+    bc-type-in 1.1s steps(8) 0.4s 1 both,
+    bc-caret 0.8s step-end infinite;
+}
+@keyframes bc-type-in {
+  from { width: 0; }
+  to   { width: 8ch; }
+}
+@keyframes bc-caret {
+  50% { border-color: transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bc-type {
+    width: 8ch;
+    border-right: none;
+    animation: none;
+  }
 }
 .md-typeset .bc-hero h1 {
   color: #fff !important;
@@ -120,12 +150,24 @@
   vertical-align: -0.2rem;
 }
 .md-typeset .grid.cards > ul > li {
+  position: relative;
   transition: border-color 120ms, box-shadow 120ms, transform 120ms;
 }
 .md-typeset .grid.cards > ul > li:hover {
   border-color: var(--md-accent-fg-color);
   box-shadow: 0 10px 24px -16px rgba(76, 68, 203, 0.7);
   transform: translateY(-2px);
+}
+/* Make the whole card clickable: stretch the card's (single) title link to
+   cover it. Each Explore card has exactly one link, so there's no overlap. */
+.md-typeset .grid.cards > ul > li:hover {
+  cursor: pointer;
+}
+.md-typeset .grid.cards > ul > li a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
 }
 
 /* Rounded code blocks / cards per the brand radius. */

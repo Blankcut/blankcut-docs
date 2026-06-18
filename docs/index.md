@@ -6,12 +6,12 @@ hide:
 
 <div class="bc-hero" markdown>
 
-![](assets/logo.svg){ .bc-hero__logo }
+<img class="bc-hero__logo" src="assets/logo.svg" alt="BlankCut">
 
 # BlankCut Docs
 
 Ship a GitHub repo all the way to production — builds, deploys, secrets, and
-monitoring — driven by the `blankcut` CLI.
+monitoring — driven by the <span class="bc-type">blankcut</span> CLI.
 
 [Get started](cli/index.md){ .md-button .md-button--primary }
 [Command reference](cli/commands.md){ .md-button }
