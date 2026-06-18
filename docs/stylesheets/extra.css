@@ -87,30 +87,21 @@
   opacity: 0.97;
 }
 
-/* "blankcut" typed out with a blinking cursor — no code-highlight box. */
-.bc-type {
+/* Rotating typewriter phrase in the hero — text is driven by rotator.js;
+   the CSS just supplies the blinking caret. */
+.bc-rotator {
   font-family: var(--md-code-font-family, "Overpass Mono", monospace);
   color: #fff;
-  display: inline-block;
-  overflow: hidden;
   white-space: nowrap;
-  vertical-align: bottom;
-  width: 8ch; /* "blankcut" = 8 chars */
   border-right: 0.12em solid currentColor;
-  animation:
-    bc-type-in 1.1s steps(8) 0.4s 1 both,
-    bc-caret 0.8s step-end infinite;
-}
-@keyframes bc-type-in {
-  from { width: 0; }
-  to   { width: 8ch; }
+  padding-right: 0.05em;
+  animation: bc-caret 0.8s step-end infinite;
 }
 @keyframes bc-caret {
   50% { border-color: transparent; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .bc-type {
-    width: 8ch;
+  .bc-rotator {
     border-right: none;
     animation: none;
   }

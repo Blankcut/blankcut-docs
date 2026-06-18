@@ -61,15 +61,18 @@ plugins:
 extra_css:
   - stylesheets/extra.css
 
+extra_javascript:
+  - javascripts/rotator.js
+
 nav:
   - Home: index.md
   - BlankCut CLI:
-      - Overview & setup: cli/index.md
+      - cli/index.md
       - Command reference: cli/commands.md
       - Secrets: cli/secrets.md
       - Supported stacks: cli/stacks.md
   - Kubernetes MCP Server:
-      - Introduction: kubernetes-mcp-server/introduction.md
+      - kubernetes-mcp-server/index.md
       - Quick start: kubernetes-mcp-server/quick-start.md
       - Installation: kubernetes-mcp-server/installation.md
       - Configuration: kubernetes-mcp-server/configuration.md

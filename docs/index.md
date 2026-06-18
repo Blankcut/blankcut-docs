@@ -10,20 +10,15 @@ hide:
 
 # BlankCut Docs
 
-Ship a GitHub repo all the way to production — builds, deploys, secrets, and
-monitoring — driven by the <span class="bc-type">blankcut</span> CLI.
+Guides, references, and how-tos for the BlankCut platform and the tools we build
+on it — like <span id="bc-rotator" class="bc-rotator">the blankcut CLI</span>.
 
-[Get started](https://meerkat.blankcut.com/register){ .md-button .md-button--primary }
-[Browse the CLI docs](cli/index.md){ .md-button }
+[Get started](cli/index.md){ .md-button .md-button--primary }
+[Kubernetes MCP Server](kubernetes-mcp-server/index.md){ .md-button }
 
 </div>
 
-Documentation for the BlankCut platform and the internal tools we build on top of
-it. BlankCut takes a repository and runs it end-to-end: builds, releases into a
-dedicated Kubernetes namespace, manages its secrets, and watches it once it's
-live. The `blankcut` CLI is how you and your coding agents drive that.
-
-## Explore
+## Explore the docs
 
 <div class="grid cards" markdown>
 
@@ -31,24 +26,10 @@ live. The `blankcut` CLI is how you and your coding agents drive that.
 
     ---
 
-    Install, configure, and use the CLI — scaffolding, validation, secrets,
-    promotion, and status.
+    Ship a GitHub repo to production — scaffolding, validation, secrets,
+    promotion, and live status, all from the `blankcut` CLI.
 
--   :material-shield-key-outline:{ .bc-card-icon } **[Secrets](cli/secrets.md)**
-
-    ---
-
-    The pull / push / diff / run lifecycle, the `.env.example` gate, and the hard
-    rule on never emitting values.
-
--   :material-cube-outline:{ .bc-card-icon } **[Supported stacks](cli/stacks.md)**
-
-    ---
-
-    The platform contract: what we run, the backing services, and the rules every
-    app must follow.
-
--   :material-kubernetes:{ .bc-card-icon } **[Kubernetes MCP Server](kubernetes-mcp-server/introduction.md)**
+-   :material-kubernetes:{ .bc-card-icon } **[Kubernetes MCP Server](kubernetes-mcp-server/index.md)**
 
     ---
 
@@ -57,20 +38,18 @@ live. The `blankcut` CLI is how you and your coding agents drive that.
 
 </div>
 
+More tools land here as we build them — each gets its own section in the sidebar.
+
 !!! note "For coding agents"
-    If you're an LLM agent working in an onboarded repo, that repo's `CLAUDE.md`
-    is the binding source of truth — these pages are its public, browsable
-    version. Always run `blankcut upgrade --check` at the start of a session: the
-    CLI ships frequently and command behavior changes between releases.
+    Working in an onboarded repo? That repo's `CLAUDE.md` is the binding source
+    of truth — these pages are its public, browsable version. Run
+    `blankcut upgrade --check` at the start of any session that uses the CLI.
 
-## Access
+## New to BlankCut?
 
-New to BlankCut? **[Create an account at meerkat.blankcut.com](https://meerkat.blankcut.com/register)** —
-that's the web console where you join the organization, create your first
-project, and get the API key the CLI uses. Then follow
-[Overview & setup](cli/index.md) to install and configure the CLI.
+[Create an account at **meerkat.blankcut.com**](https://meerkat.blankcut.com/register)
+— the web console where you join the organization, spin up projects, and get the
+API key the CLI uses. Then head to the [CLI guide](cli/index.md) to install and
+configure.
 
-The CLI binary itself is distributed as auth-gated GitHub Releases, so your
-GitHub account needs access to the BlankCut organization (granted when you
-connect GitHub in Meerkat). **These docs are public; the binary and platform
-internals are not.**
+These docs are public; the platform binaries and internals are not.
