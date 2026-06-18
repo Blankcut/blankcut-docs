@@ -48,6 +48,13 @@ live. The `blankcut` CLI is how you and your coding agents drive that.
     The platform contract: what we run, the backing services, and the rules every
     app must follow.
 
+-   :material-kubernetes:{ .bc-card-icon } **[Kubernetes MCP Server](kubernetes-mcp-server/introduction.md)**
+
+    ---
+
+    AI-powered analysis and troubleshooting for your Kubernetes + GitOps
+    workflows over the Model Context Protocol.
+
 </div>
 
 !!! note "For coding agents"

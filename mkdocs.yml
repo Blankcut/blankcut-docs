@@ -68,5 +68,12 @@ nav:
       - Command reference: cli/commands.md
       - Secrets: cli/secrets.md
       - Supported stacks: cli/stacks.md
-  # Future product sections (e.g. Kubernetes MCP Server) get their own folder
-  # under docs/ and a block here.
+  - Kubernetes MCP Server:
+      - Introduction: kubernetes-mcp-server/introduction.md
+      - Quick start: kubernetes-mcp-server/quick-start.md
+      - Installation: kubernetes-mcp-server/installation.md
+      - Configuration: kubernetes-mcp-server/configuration.md
+      - API overview: kubernetes-mcp-server/api-overview.md
+      - Troubleshooting: kubernetes-mcp-server/troubleshooting-resources.md
+      - Model Context Protocol: kubernetes-mcp-server/model-context-protocol.md
+  # Each additional tool/product gets its own folder under docs/ and a block here.
