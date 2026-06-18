@@ -13,8 +13,8 @@ hide:
 Ship a GitHub repo all the way to production — builds, deploys, secrets, and
 monitoring — driven by the <span class="bc-type">blankcut</span> CLI.
 
-[Get started](cli/index.md){ .md-button .md-button--primary }
-[Command reference](cli/commands.md){ .md-button }
+[Get started](https://meerkat.blankcut.com/register){ .md-button .md-button--primary }
+[Browse the CLI docs](cli/index.md){ .md-button }
 
 </div>
 
@@ -58,7 +58,12 @@ live. The `blankcut` CLI is how you and your coding agents drive that.
 
 ## Access
 
-The `blankcut` CLI is distributed as auth-gated GitHub Releases from a private
-repository, so you need a GitHub account with access to the BlankCut organization
-to install it. **These docs are public; the binary and platform internals are
-not.**
+New to BlankCut? **[Create an account at meerkat.blankcut.com](https://meerkat.blankcut.com/register)** —
+that's the web console where you join the organization, create your first
+project, and get the API key the CLI uses. Then follow
+[Overview & setup](cli/index.md) to install and configure the CLI.
+
+The CLI binary itself is distributed as auth-gated GitHub Releases, so your
+GitHub account needs access to the BlankCut organization (granted when you
+connect GitHub in Meerkat). **These docs are public; the binary and platform
+internals are not.**

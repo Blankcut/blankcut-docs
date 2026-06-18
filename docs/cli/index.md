@@ -13,6 +13,19 @@ There are two flavors of commands:
 
 ---
 
+## Create your account
+
+The CLI drives the BlankCut platform, so start with an account. Sign up at
+**[meerkat.blankcut.com](https://meerkat.blankcut.com/register)** — the BlankCut
+web console. There you join the organization, connect GitHub, create your first
+project, and issue the **API key** the CLI authenticates with.
+
+[Create your account →](https://meerkat.blankcut.com/register){ .md-button .md-button--primary }
+
+Then continue with installing the CLI below.
+
+---
+
 ## Install
 
 The CLI is published as **auth-gated GitHub Releases** from a private repo, so the
@@ -40,8 +53,9 @@ install reuses your existing GitHub CLI (`gh`) session for the download.
 
 !!! tip "404 on install?"
     A 404 almost always means your `gh` account doesn't have access to the
-    BlankCut organization. Run `gh auth status` to confirm who you're logged in
-    as, and ask a BlankCut admin for access.
+    BlankCut organization yet. Run `gh auth status` to confirm you're logged in
+    as the **same GitHub account you connected in Meerkat** — that's what grants
+    the org access the download needs.
 
 ---
 
@@ -74,10 +88,11 @@ Credentials are stored in `~/.blankcut/config.json`. For one-off invocations
 `BLANKCUT_ENDPOINT` as environment variables.
 
 !!! warning "Handle your API key carefully"
-    Your API key is shown to you **once** when it's issued; the platform only
-    stores a hash. Never commit `~/.blankcut/config.json`, and never paste your
-    key into chat, PR descriptions, commit messages, or logs. Ask the BlankCut
-    admin who onboarded your team for a key.
+    Issue or copy your API key from your account at
+    [meerkat.blankcut.com](https://meerkat.blankcut.com). It's shown to you
+    **once**; the platform only stores a hash. Never commit
+    `~/.blankcut/config.json`, and never paste your key into chat, PR
+    descriptions, commit messages, or logs.
 
 ---
 
