@@ -1,15 +1,18 @@
 # BlankCut CLI — overview & setup
 
 `blankcut` is the single CLI that connects a repository to the BlankCut platform.
-You use it to scaffold the standard layout, validate platform readiness, manage
-secrets, promote an app through the build/deploy pipeline, and check live status.
+You use it to scaffold the standard layout, validate platform readiness, read the
+environment your app actually runs in, manage secrets, provision projects and
+backing services, promote an app through the build/deploy pipeline, and check
+live status.
 
 There are two flavors of commands:
 
-- **Local** commands (`init`, `validate`) operate purely on the working directory
-  and need nothing but the binary.
-- **Remote** commands (`secrets`, `promote`, `status`, `validate --fix`) talk to
-  the hosted Agent Service and need a configured API key.
+- **Local** commands (`init`, `validate`, `sync`) operate purely on the working
+  directory and need nothing but the binary.
+- **Remote** commands (`context`, `secrets`, `promote`, `status`, `diagnose`,
+  `validate --fix`) talk to the hosted Agent Service and need a configured API
+  key — or `BLANKCUT_API_KEY` and `BLANKCUT_ENDPOINT` in the environment.
 
 ---
 
@@ -93,6 +96,27 @@ Credentials are stored in `~/.blankcut/config.json`. For one-off invocations
     **once**; the platform only stores a hash. Never commit
     `~/.blankcut/config.json`, and never paste your key into chat, PR
     descriptions, commit messages, or logs.
+
+---
+
+## Before you write code
+
+Run [`blankcut context`](commands.md#understanding-your-environment) against your
+app. It reports the resource envelope the container actually gets, how far it
+scales, which secret keys reach the running pod, and the database's connection
+limit and schema.
+
+```bash
+blankcut context --app <APP>
+```
+
+Those are the details that are invisible from inside a repository and expensive
+to get wrong — a connection pool sized for one process when six are running, or
+code reading a secret that is stored but never delivered. Nothing is cached, so
+what you see is what is deployed.
+
+When something is broken, [`blankcut diagnose`](commands.md#blankcut-diagnose-app-app)
+names the likely cause rather than leaving you to infer it from pod counts.
 
 ---
 
