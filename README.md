@@ -1,7 +1,8 @@
 # blankcut-docs
 
-Public documentation hub for the BlankCut platform and its internal tools, served
-at **[docs.blankcut.com](https://docs.blankcut.com)**.
+**Meerkat docs**: public documentation for Meerkat by Blank Cut (the hosting
+platform), the `blankcut` CLI that drives it, and Blank Cut's other public tools,
+served at **[docs.blankcut.com](https://docs.blankcut.com)**.
 
 Built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) and
 deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to
@@ -12,7 +13,7 @@ deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to
 ```
 docs/
   index.md          # hub landing page
-  cli/              # BlankCut CLI docs
+  cli/              # Meerkat CLI (`blankcut`) docs
   <tool>/           # one folder per additional tool (add a section in mkdocs.yml)
 ```
 

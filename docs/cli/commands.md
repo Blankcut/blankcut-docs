@@ -5,7 +5,7 @@ configured API key (see [Overview & setup](index.md#configure)).
 
 !!! note
     Don't invent flags or endpoints. If a command or flag you need isn't
-    documented here, run `blankcut <command> --help`, or ask the platform team —
+    documented here, run `blankcut <command> --help`, or ask the Blank Cut team —
     don't guess.
 
 ---
@@ -26,9 +26,9 @@ Run the platform readiness checks against the repo. Pure local, no network. Exit
 
 ### `blankcut validate --fix`
 
-Delegate failing checks to the Agent Service. The server opens a pull request (or
-pushes directly to `main` where branch protection allows) with the fixes, then
-watches the resulting pipeline and self-heals known failure modes.
+Delegate failing checks to Meerkat. It opens a pull request (or pushes directly
+to `main` where branch protection allows) with the fixes, then watches the
+resulting pipeline and self-heals known failure modes.
 
 ### `blankcut upgrade`
 
@@ -57,6 +57,9 @@ the block should mention. `--check` reports whether the block is stale and exits
 
 Save credentials to `~/.blankcut/config.json`. See
 [Configure](index.md#configure).
+
+The endpoint is `https://api.blankcut.com`. `https://agent.blankcut.com` remains
+supported, and CLI v0.22.0 and later default new configs to `api.blankcut.com`.
 
 For CI runners, containers, and any environment with no saved config, set
 `BLANKCUT_API_KEY` and `BLANKCUT_ENDPOINT` instead — every remote command reads
@@ -178,10 +181,19 @@ nothing to diagnose when the app is healthy or has not been deployed.
 
 ### `blankcut promote --repo <GITHUB_URL> [--model claude\|openai\|gemini]`
 
-Trigger the full LLM-driven onboarding run on the Agent Service: it analyzes the
-repo, generates the CI workflow, reconciles the build pipeline, and opens the
-necessary pull requests. The CLI polls and renders phase transitions until the
-job reaches a terminal state. `--model` selects the LLM (default `claude`).
+Trigger the full LLM-driven onboarding run on Meerkat: it analyzes the repo,
+generates the CI workflow, reconciles the build pipeline, and opens the necessary
+pull requests. The CLI polls and renders phase transitions until the job reaches
+a terminal state. `--model` selects the LLM (default `claude`).
+
+Once deployed, the app is served at `https://<app>.blankcut.app` by default;
+`blankcut context env` lists the exact hostnames it answers on.
+
+!!! note "App addresses are moving to `.blankcut.app`"
+    Apps were previously served at `<app>.blankcut.com`. Those addresses keep
+    working; after 2026-10-28 they redirect to the app's `.blankcut.app`
+    address. Point webhooks, OAuth redirect URIs, and API clients at
+    `.blankcut.app` before then rather than relying on the redirect.
 
 ### `blankcut status --app <APP>`
 

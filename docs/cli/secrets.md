@@ -1,6 +1,6 @@
 # Secrets
 
-The platform stores every app's secrets in an encrypted parameter store. The CLI
+Meerkat stores every app's secrets in an encrypted parameter store. The CLI
 is the only thing you need to manage them — you never touch the store directly,
 and **values never live in git**.
 

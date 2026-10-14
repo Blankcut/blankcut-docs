@@ -1,6 +1,7 @@
-// Typewriter rotator for the home hero — cycles through the technologies the
-// docs cover, reinforcing that this is a multi-product hub. Honors
-// prefers-reduced-motion (leaves the initial text in place).
+// Typewriter rotator for the home hero — cycles through what Meerkat takes
+// care of for a connected repo. The first phrase must match the initial text
+// in docs/index.md. Honors prefers-reduced-motion (leaves the initial text in
+// place).
 (function () {
   function start() {
     var el = document.getElementById("bc-rotator");
@@ -9,10 +10,10 @@
       return; // leave the server-rendered initial phrase
     }
     var phrases = [
-      "the blankcut CLI",
-      "the Kubernetes MCP server",
-      "your GitOps workflows",
-      "secrets and deploys",
+      "builds and deploys",
+      "secrets",
+      "databases and storage",
+      "scaling and health checks",
     ];
     var i = 0, j = 0, deleting = false;
     function tick() {

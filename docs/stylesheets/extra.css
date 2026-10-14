@@ -180,8 +180,22 @@
   width: auto;
 }
 
-/* Drop the generic "Made with Material for MkDocs" copyright bar; keep the
-   prev/next page navigation, which is genuinely useful. */
+/* Footer bar: just the "Meerkat by Blank Cut" line with the console and status
+   links (the "Made with Material" credit is off via extra.generator in
+   mkdocs.yml). Kept slim and on the brand dark. */
 .md-footer-meta {
-  display: none;
+  background-color: #1a1a1a;
+}
+.md-footer-meta .md-copyright {
+  margin: 0;
+  padding: 0.5rem 0;
+}
+/* Beats Material's `.md-footer-meta.md-typeset a`, which would render the
+   links in the same grey as the surrounding text. */
+html .md-footer-meta.md-typeset .md-copyright__highlight a {
+  color: #c9c4fb;
+}
+html .md-footer-meta.md-typeset .md-copyright__highlight a:hover,
+html .md-footer-meta.md-typeset .md-copyright__highlight a:focus {
+  color: #ffffff;
 }
