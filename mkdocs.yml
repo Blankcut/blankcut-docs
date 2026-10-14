@@ -1,7 +1,13 @@
-site_name: BlankCut Docs
-site_description: Documentation for the BlankCut platform and its internal tools.
+site_name: Meerkat docs
+site_description: >-
+  Documentation for Meerkat by Blank Cut, the platform that builds, deploys and
+  runs your apps, and for the blankcut CLI that drives it.
 site_url: https://docs.blankcut.com
-copyright: © Blank Cut
+# Rendered in the footer bar on every page (HTML is allowed here).
+copyright: >-
+  &copy; Meerkat by Blank Cut
+  &middot; <a href="https://meerkat.blankcut.com">Console</a>
+  &middot; <a href="https://status.blankcut.com">Status</a>
 
 theme:
   name: material
@@ -58,6 +64,11 @@ markdown_extensions:
 plugins:
   - search
 
+extra:
+  # Drop the "Made with Material for MkDocs" line; keep the copyright bar,
+  # which carries the console and status links.
+  generator: false
+
 extra_css:
   - stylesheets/extra.css
 
@@ -66,7 +77,7 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - BlankCut CLI:
+  - Meerkat CLI:
       - cli/index.md
       - Command reference: cli/commands.md
       - Secrets: cli/secrets.md

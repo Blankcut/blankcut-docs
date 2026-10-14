@@ -1,6 +1,6 @@
 # Supported stacks — the platform contract
 
-BlankCut runs a deliberately small, opinionated set of stacks so every app gets
+Meerkat runs a deliberately small, opinionated set of stacks so every app gets
 the same guarantees: build, deploy, health, and secrets. An app is checked
 against this contract at onboarding; apps outside it are rejected or held for
 manual review.
@@ -26,7 +26,7 @@ Use these — don't bring your own:
 - Do **not** add infrastructure the platform doesn't provide (other databases,
   message brokers, search engines, etc.). If you think you need one, stop and ask
   — it likely means the app isn't a fit, or the capability should be requested
-  from the platform team.
+  from the Blank Cut team.
 - Every service runs as a container and must expose a **`/health`** endpoint that
   returns `200` when healthy.
 - Declare every environment variable the app needs in **`.env.example`** — that
