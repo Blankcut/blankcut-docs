@@ -160,6 +160,12 @@ during a transfer can make it fail.
 Your site and email keep working throughout, because DNS already moved in
 step 2. We email you when the transfer completes.
 
+If your website is built **on Squarespace** and should keep running there,
+reconnect the domain in Squarespace once the transfer completes (**Domains →
+Use a domain I own**) and add the verification record Squarespace shows with
+`blankcut domains records set` (or in the console's DNS records for the
+domain).
+
 ---
 
 ## Point a domain at a different app, or none
