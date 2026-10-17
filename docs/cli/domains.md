@@ -124,6 +124,15 @@ Then set the four nameservers it prints at your current registrar:
   confirm (this turns DNSSEC off) → enter all four → **Save**. Squarespace's
   own DNS settings stop applying, which is why we copied them first.
 
+!!! warning "A website built on Squarespace disconnects at this step"
+    Switching to custom nameservers disconnects the domain from any Squarespace
+    website straight away (email keeps working: its records were copied). If a
+    Squarespace site is live on the domain, do step 3 first — turn off Domain
+    Lock and request the transfer code, which can take up to 24 hours to arrive —
+    and switch the nameservers once you have the code. Then start the transfer
+    with `--app`: because Blank Cut already hosts the domain's DNS, it goes live
+    on that app as soon as the transfer starts, not when Squarespace releases it.
+
 Nameserver changes usually take effect within an hour and can take up to 48.
 `blankcut domains transfer check` shows when the switch has gone through.
 
@@ -157,14 +166,16 @@ during a transfer can make it fail.
 - **Squarespace** emails a notice and gives you 5 days to reject the transfer;
   if you do nothing it proceeds on its own. Transfers can take up to 15 days.
 
-Your site and email keep working throughout, because DNS already moved in
-step 2. We email you when the transfer completes.
+Email and any site not hosted by the old registrar keep working throughout,
+because DNS already moved in step 2. If you gave `--app` and DNS already points
+at Blank Cut, the domain goes live on that app when the transfer starts. We
+email you when the transfer completes.
 
-If your website is built **on Squarespace** and should keep running there,
-reconnect the domain in Squarespace once the transfer completes (**Domains →
-Use a domain I own**) and add the verification record Squarespace shows with
-`blankcut domains records set` (or in the console's DNS records for the
-domain).
+If your website is built **on Squarespace** and should keep running there
+instead, reconnect it in Squarespace after switching the nameservers
+(**Domains → Use a Domain I Own → Connect domain → No, use DNS records**) and
+add the records Squarespace lists with `blankcut domains records set` (or in the
+console's DNS records for the domain).
 
 ---
 
