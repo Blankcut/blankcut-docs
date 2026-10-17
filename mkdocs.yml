@@ -81,6 +81,7 @@ nav:
       - cli/index.md
       - Command reference: cli/commands.md
       - Secrets: cli/secrets.md
+      - Domains: cli/domains.md
       - Supported stacks: cli/stacks.md
   - Kubernetes MCP Server:
       - kubernetes-mcp-server/index.md

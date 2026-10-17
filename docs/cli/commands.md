@@ -268,6 +268,28 @@ cluster until a maintainer merges them.
 | `--delete-repo` | Tear down **and** delete the GitHub repository. Irreversible |
 | `--yes` | Skip the interactive confirmation |
 
+### `blankcut domains`
+
+Buy, transfer and connect custom domains, and manage their DNS. Registration,
+transfer and renewal are charged at cost to your organization's card; the
+walkthrough, including moving a domain in from GoDaddy or Squarespace, is in
+[Domains](domains.md).
+
+| Command | Effect |
+|---|---|
+| `blankcut domains list` | Your domains and any purchase or transfer still in progress |
+| `blankcut domains search <name>` | Availability, yearly price and alternatives |
+| `blankcut domains buy <domain> [--app <APP>]` | Register a domain (owner only) |
+| `blankcut domains contact set ...` | The registrant contact used for registrations and transfers |
+| `blankcut domains transfer check\|dns\|start <domain>` | Move a domain in from another registrar |
+| `blankcut domains attach <domain> --app <APP>` | Serve a domain from an app (connects a domain you own elsewhere, too) |
+| `blankcut domains detach <domain>` | Stop serving it, keep the domain |
+| `blankcut domains status <domain>` | Certificate, DNS records, registration and any order |
+| `blankcut domains records <domain>` / `records set` / `records rm` | DNS for domains Blank Cut hosts |
+| `blankcut domains auto-renew <domain> on\|off` | Keep renewing, or let it lapse at expiry |
+| `blankcut domains release <domain>` | Unlock and get the transfer code to move it elsewhere |
+| `blankcut domains verify-email <domain>` | Resend the registry's owner-verification email |
+
 ---
 
 ## API keys
