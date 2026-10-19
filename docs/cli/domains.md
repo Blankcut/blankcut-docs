@@ -17,9 +17,11 @@ What it costs:
   If the registration or transfer then fails, the charge is refunded in full.
   Registrations themselves are non-refundable, so check the name before you buy.
 
-Only an **owner** of your organization can buy, transfer, release or change the
-renewal of a domain, because those charge the card or change who controls the
-name. Any member can connect a domain, point it at an app and edit its DNS.
+Only an **owner** of your organization can buy or transfer in a domain or change
+its renewal, because those charge the card or change who controls the name.
+Moving a domain *out* to another registrar is done in the Meerkat console by a
+signed-in owner. Any member can connect a domain, point it at an app and edit
+its DNS.
 
 ---
 
@@ -124,14 +126,20 @@ Then set the four nameservers it prints at your current registrar:
   confirm (this turns DNSSEC off) → enter all four → **Save**. Squarespace's
   own DNS settings stop applying, which is why we copied them first.
 
-!!! warning "A website built on Squarespace disconnects at this step"
-    Switching to custom nameservers disconnects the domain from any Squarespace
-    website straight away (email keeps working: its records were copied). If a
-    Squarespace site is live on the domain, do step 3 first — turn off Domain
-    Lock and request the transfer code, which can take up to 24 hours to arrive —
-    and switch the nameservers once you have the code. Then start the transfer
-    with `--app`: because Blank Cut already hosts the domain's DNS, it goes live
-    on that app as soon as the transfer starts, not when Squarespace releases it.
+!!! warning "At Squarespace, start a day ahead"
+    - **DNSSEC** (on by default for former Google Domains): turn it off a day
+      before switching — **DNS → DNSSEC → switch off DNS Security Extensions →
+      Confirm**. Squarespace's nameserver switch also turns it off, but at the
+      same moment, and resolvers that check signatures keep the old setting for
+      up to a day: the site, and the domain's email, can fail for those visitors
+      meanwhile.
+    - **A website built on Squarespace** disconnects from the domain as soon as
+      the nameservers change (email keeps working: its records were copied).
+      Do step 3 first — turn off Domain Lock and request the transfer code,
+      which can take up to 24 hours to arrive — and switch the nameservers once
+      you have the code. Then start the transfer with `--app`: because Blank Cut
+      already hosts the domain's DNS, it goes live on that app as soon as the
+      transfer starts, not when Squarespace releases it.
 
 Nameserver changes usually take effect within an hour and can take up to 48.
 `blankcut domains transfer check` shows when the switch has gone through.
@@ -209,7 +217,11 @@ your domain at its app, and the zone's own nameservers — are read-only.
 - **Stop renewing it:** `blankcut domains auto-renew example.com off`. The
   domain stays yours until its expiry date and then lapses. We email you 30 days
   before any renewal or expiry either way.
-- **Transfer it to another registrar:** `blankcut domains release example.com`
-  unlocks it and shows the transfer (auth) code once. Give the code to your new
-  registrar. The domain keeps working until the transfer completes, and DNS
-  hosted here keeps answering until you change the nameservers.
+- **Transfer it to another registrar:** in Meerkat, signed in as an owner:
+  **Domains → the domain → Registration → Transfer out**. It unlocks the domain
+  and shows the transfer (auth) code once; every owner is emailed that it was
+  issued. Give the code to your new registrar. The domain keeps working until
+  the transfer completes, and DNS hosted here keeps answering until you change
+  the nameservers. This isn't available from the CLI — a transfer code is all
+  another registrar needs to take a domain, so it is never handed to a terminal,
+  a script or a coding agent (`blankcut domains release` only points you here).

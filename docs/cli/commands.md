@@ -287,7 +287,7 @@ walkthrough, including moving a domain in from GoDaddy or Squarespace, is in
 | `blankcut domains status <domain>` | Certificate, DNS records, registration and any order |
 | `blankcut domains records <domain>` / `records set` / `records rm` | DNS for domains Blank Cut hosts |
 | `blankcut domains auto-renew <domain> on\|off` | Keep renewing, or let it lapse at expiry |
-| `blankcut domains release <domain>` | Unlock and get the transfer code to move it elsewhere |
+| `blankcut domains release <domain>` | Points you to Meerkat, where an owner moves a domain to another registrar |
 | `blankcut domains verify-email <domain>` | Resend the registry's owner-verification email |
 
 ---
