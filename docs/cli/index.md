@@ -75,7 +75,7 @@ to. Two environment variables change what it does:
 | Variable | Effect |
 |---|---|
 | `BLANKCUT_INSTALL_DIR=~/bin` | Install somewhere else. Use a directory you can write to in CI, where nothing can answer a `sudo` prompt. |
-| `BLANKCUT_VERSION=v0.23.1` | Install a specific release instead of the latest. |
+| `BLANKCUT_VERSION=v0.23.2` | Install a specific release instead of the latest. |
 
 !!! warning "Only two places to get it"
     The CLI is distributed only through the Homebrew tap and
