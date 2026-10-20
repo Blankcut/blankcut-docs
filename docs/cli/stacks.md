@@ -16,8 +16,13 @@ manual review.
 
 Use these — don't bring your own:
 
-- **PostgreSQL**, preferably **Supabase** (managed per app).
-- **Redis** (in-cluster per app).
+- **PostgreSQL**, preferably **Supabase** (managed per app):
+  `blankcut database add`, or `--database` when you onboard or provision.
+- **Redis** (in-cluster per app): `blankcut redis enable`.
+- **File storage** for images, video and uploads:
+  [`blankcut storage add`](storage.md).
+- **Scheduled jobs** that call your app's own endpoints:
+  [`blankcut schedule add`](schedule.md).
 
 ## Rules for any work in a platform repo
 
@@ -36,6 +41,12 @@ Use these — don't bring your own:
   shell, no install-time hooks that fetch and execute, and base images only from
   trusted registries. The onboarding gate flags these and pauses the app for
   review.
+- Every image is [scanned for vulnerabilities](scan.md) before it's pushed.
+  Keep the base image patched and dependencies current.
+
+`blankcut validate` checks a repository against these rules locally, before you
+connect it. See [Deploy an app](deploy.md#connect-an-existing-repo) for the full
+list of checks.
 
 Staying inside the contract is what lets the platform actually support what you
 ship.

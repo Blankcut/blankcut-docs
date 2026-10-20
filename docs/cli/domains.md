@@ -37,7 +37,12 @@ blankcut domains buy vinehoa.com --app vine-frontend
 
 The registrant contact is the legal owner of the domain; it is saved once per
 organization and reused. Privacy protection is always on, so these details are
-hidden from public WHOIS.
+hidden from public WHOIS. `--organization` makes the contact a company.
+
+`buy` looks up the price and asks you to confirm before your card is charged.
+The domain renews yearly unless you pass `--no-auto-renew`. With `--app`, the
+`www.` name is served too and redirects to the bare domain; `--no-www` turns
+that off.
 
 Registration usually completes in 5 to 15 minutes. Then:
 
@@ -161,9 +166,12 @@ Nameserver changes usually take effect within an hour and can take up to 48.
 blankcut domains transfer start example.com --app my-app
 ```
 
-You're prompted for the authorization code (it's never stored). Keep the
-owner's details the same as at the current registrar — changing the owner
-during a transfer can make it fail.
+You're prompted for the authorization code, which isn't echoed or stored. To
+supply it without typing, set `BLANKCUT_DOMAIN_AUTH_CODE` in your shell first;
+`--auth-code` also works but leaves the code in your shell history. The price is
+shown and confirmed before your card is charged. Keep the owner's details the
+same as at the current registrar — changing the owner during a transfer can
+make it fail.
 
 ### 5. What happens next
 

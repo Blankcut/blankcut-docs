@@ -79,10 +79,16 @@ nav:
   - Home: index.md
   - Meerkat CLI:
       - cli/index.md
-      - Command reference: cli/commands.md
+      - Deploy an app: cli/deploy.md
+      - Read your environment: cli/context.md
       - Secrets: cli/secrets.md
+      - File storage: cli/storage.md
+      - Scheduled jobs: cli/schedule.md
+      - Image scanning: cli/scan.md
       - Domains: cli/domains.md
       - Supported stacks: cli/stacks.md
+      - Coding agents: cli/agents.md
+      - Command reference: cli/commands.md
   - Kubernetes MCP Server:
       - kubernetes-mcp-server/index.md
       - Quick start: kubernetes-mcp-server/quick-start.md

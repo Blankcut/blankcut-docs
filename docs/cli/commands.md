@@ -1,302 +1,311 @@
 # Command reference
 
-All commands are run as `blankcut <command>`. Remote commands require a
-configured API key (see [Overview & setup](index.md#configure)).
+Every command is run as `blankcut <command>`. Remote commands need you to be
+[signed in](index.md#sign-in), or `BLANKCUT_API_KEY` in the environment.
 
-!!! note
-    Don't invent flags or endpoints. If a command or flag you need isn't
-    documented here, run `blankcut <command> --help`, or ask the Blank Cut team —
-    don't guess.
+!!! note "The binary is the final word"
+    This page describes the current release. For the exact flags of the build
+    you have, run `blankcut <command> --help`, and `blankcut --help` for the
+    full list of commands. If a command or flag isn't in either, it doesn't
+    exist: don't guess. Flags reserved for the Blank Cut team are left out here.
+
+Commands that report on an app take `--app <APP>`. Where it's marked optional,
+it's worked out from the git remote when you run the command inside the app's
+repository.
 
 ---
 
-## Local commands
+## Setup
 
-### `blankcut init [--name <app>]`
+### `blankcut login`
 
-Scaffold the standard platform layout into the current repo. **Non-destructive** —
-it never overwrites your files; it merges missing entries into `.env.example` and
-`.gitignore`, and refreshes the platform-managed block in `CLAUDE.md` in place.
-`--name` overrides the app name (defaults to the current directory name).
+Sign this machine in. Prints a short code and opens your browser to approve it;
+the CLI then stores an API key for this machine without ever showing it. See
+[Sign in](index.md#sign-in).
 
-### `blankcut validate`
+| Flag | Effect |
+|---|---|
+| `--no-browser` | Print the URL to open elsewhere instead of opening a browser. |
+| `--device-name <NAME>` | The name this key is listed under in the console. Defaults to the hostname. |
 
-Run the platform readiness checks against the repo. Pure local, no network. Exits
-`0` on PASS, `1` on FAIL — usable as a CI gate.
+### `blankcut configure --api-key <KEY>`
 
-### `blankcut validate --fix`
+Store a key you were handed directly in `~/.blankcut/config.json`. Prefer
+`blankcut login`. `--endpoint` defaults to `https://api.blankcut.com`.
 
-Delegate failing checks to Meerkat. It opens a pull request (or pushes directly
-to `main` where branch protection allows) with the fixes, then watches the
-resulting pipeline and self-heals known failure modes.
+### `blankcut keys refresh`
+
+Replace this machine's API key with a fresh one and write it straight into your
+config. The old key stops working immediately; the new one covers the same
+projects. Use it if a key may have been exposed, or on a schedule.
 
 ### `blankcut upgrade`
 
-Update the CLI to the latest release. `--check` reports current vs latest and
-lists what changed since your build, without installing anything; `--force`
-reinstalls even if up to date. See
+Install the latest release. `--check` reports your version against the latest
+and lists what's new since your build, without installing anything. `--force`
+reinstalls even when you're up to date. A Homebrew install is upgraded with
+`brew upgrade blankcut` instead. See
 [Keep the CLI up to date](index.md#keep-the-cli-up-to-date).
 
 ### `blankcut sync`
 
-Rewrite the platform-managed block in this repo's `CLAUDE.md` from the copy built
-into your binary, so the guidance a coding agent reads matches the CLI you
-actually have. Local and offline — nothing is fetched and no API key is needed.
-Only the content between the `BLANKCUT PLATFORM` markers is touched; anything
-else in the file is left alone.
+Rewrite the platform block in this repo's `CLAUDE.md` from the copy built into
+your binary, so the guidance a coding agent reads matches the CLI you have.
+Offline, no API key, and only the text between the `BLANKCUT PLATFORM` markers is
+touched. Run it after every upgrade. `--check` reports whether the block is
+stale and exits `1` without writing, for use as a CI gate.
 
-Run it after `blankcut upgrade`, since a newer binary usually means new commands
-the block should mention. `--check` reports whether the block is stale and exits
-`1` without writing, which makes it usable as a CI gate.
+### `blankcut completion bash|zsh|fish|powershell`
+
+Print a shell completion script. `blankcut completion <shell> --help` explains
+how to load it.
 
 ---
 
-## Configuration
+## Connect and create
 
-### `blankcut configure --api-key <KEY> --endpoint <URL>`
+See [Deploy an app](deploy.md) for the whole flow.
 
-Save credentials to `~/.blankcut/config.json`. See
-[Configure](index.md#configure).
+### `blankcut onboard`
 
-The endpoint is `https://api.blankcut.com`. `https://agent.blankcut.com` remains
-supported, and CLI v0.22.0 and later default new configs to `api.blankcut.com`.
+Connect a repository you already have: register the app and open a setup pull
+request. Doesn't deploy.
 
-For CI runners, containers, and any environment with no saved config, set
-`BLANKCUT_API_KEY` and `BLANKCUT_ENDPOINT` instead — every remote command reads
-them. They take precedence per-field, so exporting only `BLANKCUT_ENDPOINT`
-points a configured machine at a different service while keeping its stored key.
+| Flag | Effect |
+|---|---|
+| `--repo <URL>` | The GitHub repository. Defaults to the `origin` remote. |
+| `--name <APP>` | The app's name on Meerkat. Defaults to the repository name. |
+| `--tier sandbox\|production` | The [tier](deploy.md#rough-cut-and-production). Defaults to `production`. |
+| `--database` | Also provision a dedicated managed Postgres. |
 
-!!! note
-    Environment-variable configuration works from **v0.9.0** onward. Earlier
-    builds required `~/.blankcut/config.json` and failed with "CLI not
-    configured" regardless of what was exported.
+### `blankcut provision --name <NAME> --owner <GITHUB_ORG>`
+
+Create a new project: a repository with a runnable starter, the app registered,
+its backing services provisioned, and a first deploy. **Bills from the moment it
+exists.**
+
+| Flag | Effect |
+|---|---|
+| `--name` | The project name. Required. |
+| `--owner` | The GitHub organization the Blank Cut GitHub App is installed on. |
+| `--stack nextjs\|vite\|marketing` | The starter. Defaults to `nextjs`. |
+| `--tier sandbox\|production` | The tier. Defaults to `production`. |
+| `--database` / `--no-database` | Force a dedicated Postgres on or off. By default application stacks get one and marketing sites don't. |
+| `--display-name` | A human-readable label. |
+
+### `blankcut init`
+
+Write the platform layout into the current directory. Never overwrites a file;
+adds missing entries to `.env.example` and `.gitignore` and refreshes the
+platform block in `CLAUDE.md`. Registers and deploys nothing. `--name` sets the
+app name (the directory name by default).
+
+### `blankcut validate`
+
+Run the platform readiness checks against the current repository. Local, no
+network. Prints `[PASS]` or `[FAIL]` per check and exits `1` if any fail. The
+checks are listed in [Deploy an app](deploy.md#connect-an-existing-repo).
+
+`--fix` hands the failing checks to Meerkat, which opens a pull request with the
+fixes and watches the build that follows. `--repo` names the GitHub repository
+when it can't be read from the git remote.
+
+---
+
+## Deploy and operate
+
+### `blankcut promote`
+
+Deploy an app. A finished `promote` means the deploy is proposed; check
+`blankcut status` for when it's live. See
+[Deploy a new version](deploy.md#deploy-a-new-version).
+
+| Flag | Effect |
+|---|---|
+| `--app <APP>` | Deploy a new version of a registered app. |
+| `--repo <URL>` | Register and deploy a repository Meerkat hasn't seen before. |
+| `--dry-run` | Show the deploy change and the secret keys it would change, without writing anything. |
+| `--to-production` | Move a Rough Cut app to production before deploying (needs `--app`). |
+| `--model claude\|openai\|gemini` | The model that analyzes the repository. Defaults to `claude`. |
+
+### `blankcut status --app <APP>`
+
+Live status in one view: the latest GitHub Actions run, the deploy's sync and
+health, pod counts and recent warnings, and any deploy change still waiting. A
+source that can't be reached comes back empty instead of failing the call.
+
+### `blankcut diagnose [--app <APP>]`
+
+Read the same facts as `status` and name the likely cause. Reports nothing to
+diagnose when the app is healthy or hasn't been deployed.
+
+### `blankcut deprovision --app <APP>`
+
+Tear an app down. Secrets are deleted immediately and can't be recovered; the
+rest is removed through reviewed changes. See
+[Pause or remove an app](deploy.md#pause-or-remove-an-app).
+
+| Flag | Effect |
+|---|---|
+| `--suspend` | Reversible. Stop the running app but keep its secrets, repository, registration and build pipeline. Bring it back with `blankcut promote --app`. |
+| `--transfer-to <OWNER>` | Tear down **and** move the GitHub repository to another owner. Irreversible. |
+| `--delete-repo` | Tear down **and** delete the GitHub repository. Irreversible. |
+| `--yes` | Skip the confirmation. |
+
+---
+
+## Understand the environment
+
+### `blankcut context [subcommand] [--app <APP>] [--json]`
+
+What the app actually runs in, fetched live. JSON when piped. See
+[Read your environment](context.md).
+
+| Subcommand | Reports |
+|---|---|
+| *(none)* | Everything below at once |
+| `env` | Namespace, tier, resource envelope, workloads and scaling, hostnames |
+| `secrets` | Keys stored, keys reaching the app, and keys stored but not delivered |
+| `data` | Database engine, version, connection limit, tables and columns |
+| `storage` | Where the app's files live and what its code must do to reach them |
+| `image` | The image the app runs from, and whether it's pinned by digest |
+| `runtime` | Recent requests, error rate, latency and restarts |
+| `routes` | Every route, what guards it, and which tables it touches |
+| `conventions` | The patterns the repository actually uses, with counts |
 
 ---
 
 ## Secrets
 
-All `secrets` subcommands take `--app <APP>` (the lowercased repo name); the
-platform resolves where the app's secrets live — you never specify a path. See
-the dedicated **[Secrets](secrets.md)** page for the full workflow and rules.
+Every subcommand except the local `sync-example` takes `--app <APP>`. See
+[Secrets](secrets.md) for the workflow and the rules.
 
 | Command | Purpose |
 |---|---|
-| `blankcut secrets list --app <APP>` | Print key **names** only — values are never returned. |
-| `blankcut secrets sync-example [--env-file FILE]` | Declare the keys from your local `.env` into `.env.example` (names only). Run before `set`/`push` so new keys clear the `.env.example` gate. |
-| `blankcut secrets set --app <APP> KEY VALUE [--force]` | Write a single value. The key must already be declared in `.env.example` on `main`. If it already holds a different value the write is held back unless `--force`. |
-| `blankcut secrets pull --app <APP> [--env-file FILE] [--force]` | Fetch decrypted values into a local `.env` (mode `0600`). Refuses to overwrite a locally-differing key without `--force`. |
-| `blankcut secrets push --app <APP> [--env-file FILE] [--force]` | Bulk-upload a local `.env`. Returns a `set` / `skipped` / `rejected` partition. |
-| `blankcut secrets diff --app <APP> [--env-file FILE]` | Compare local keys to platform keys (**names only, never values**). Exits `1` on drift. |
-| `blankcut secrets run --app <APP> [--only K1,K2] [--exclude K1] -- <cmd>` | Fetch values and exec a command with them injected into its environment. Never writes a file. |
+| `blankcut secrets list` | Print key **names** only. Values are never returned. |
+| `blankcut secrets sync-example [--env-file FILE] [--example-file FILE]` | Add key names from your local `.env` to `.env.example` (names only). |
+| `blankcut secrets set KEY VALUE [--force]` | Write one value. The key must already be in `.env.example` on `main`. A different stored value is kept unless `--force`. |
+| `blankcut secrets push [--env-file FILE] [--force]` | Upload a local `.env`. Reports set, skipped and rejected keys. |
+| `blankcut secrets pull [--env-file FILE] [--force]` | Download values into a local `.env` (mode `0600`). Won't overwrite a different local value without `--force`. |
+| `blankcut secrets diff [--env-file FILE]` | Compare key names (never values). Exits `1` on any difference. |
+| `blankcut secrets run [--only K1,K2] [--exclude K1] -- <command>` | Run a command with the secrets in its environment. Never writes a file. |
+
+`--env-file` can be repeated to read or write several files.
 
 ---
 
-## Understanding your environment
-
-### `blankcut context [--app <APP>] [--json]`
-
-Report what the app **actually** runs in, so code is written against the real
-target rather than an assumed one: the resource envelope, how far it scales,
-which secret keys reach the running pod, the database engine and version and
-connection limit and schema, the image posture, and recent traffic.
-
-Run it before writing or changing code that touches infrastructure.
-
-```bash
-blankcut context --app my-app
-```
-
-`--app` is optional in a repo the platform knows — the app name is inferred from
-the git remote.
-
-**Nothing is cached.** Every run fetches live state or fails, and each response
-ends with a `Freshness` block reporting how old each part is. There is no refresh
-step and no local cache that can quietly go stale.
-
-**Output is JSON automatically when stdout is not a terminal**, so piping it into
-a tool or an agent gives machine-readable data while running it interactively
-gives a readable table. `--json` forces JSON either way. Both carry the same
-facts.
-
-#### Subcommands
-
-Each narrows the request — the platform only gathers what you asked for.
-
-| Command | Reports |
-|---|---|
-| `blankcut context env` | Namespace, tier, resource envelope, each workload and its replica count, and the hostnames the app serves |
-| `blankcut context secrets` | Which keys are stored, which reach the running pod, and any that are stored but not yet delivered |
-| `blankcut context data` | Database engine, version, connection limit, and the tables and columns that exist |
-| `blankcut context image` | The container image the app runs and whether it is pinned by digest |
-| `blankcut context runtime` | Requests, error rate, latency and resource use over a recent window |
-
-#### What the answers mean
-
-Four things are worth reading carefully, because none of them are visible from
-inside your repository:
-
-- **The resource envelope is enforced, not advisory.** The memory limit is a hard
-  ceiling: exceed it and the container is killed rather than throttled. Size what
-  you build to the limit reported, not to what your development machine has.
-
-- **Connection limits are shared across every replica of every workload.**
-  `context data` reports the database's `max connections`; `context env` lists
-  each workload and how far it scales. Your pool size is multiplied by the total.
-  An app with an API at two replicas and two workers at two each is **six**
-  processes opening connections — a pool of 20 in each exhausts a 60-connection
-  database on its own. This is the most common way an app that behaves in staging
-  falls over under load.
-
-- **"Stored" and "reaching the app" are different numbers.** A secret can exist in
-  the platform's store and still not be delivered to the pod, because the
-  deployment receives a specific list of keys. If `context secrets` shows a key
-  under *not yet reaching the app*, reading it at runtime yields nothing,
-  whatever the store holds. [Secrets](secrets.md) covers how a new key is wired
-  in.
-
-- **`context data` lists the tables that actually exist**, with their columns and
-  types. Write queries against that rather than against what your ORM models
-  imply — the two drift, and the database decides.
-
-#### When a section is unavailable
-
-Unavailable is not the same as absent, and the reason distinguishes them. *"No
-managed database is attached to this app"* means there is no database. *"The
-database schema for this app is not available yet"* means there is one that
-cannot be described right now — do not conclude the app has no storage and write
-around it.
-
-### `blankcut diagnose [--app <APP>]`
-
-Ask the platform what is wrong with a deployment.
-
-Where [`blankcut status`](#blankcut-status-app-app) reports the raw facts — pod
-counts, sync state, recent warnings — `diagnose` reads those facts and names the
-likely cause, so you get a diagnosis instead of symptoms to interpret. It returns
-nothing to diagnose when the app is healthy or has not been deployed.
-
----
-
-## Promotion & status
-
-### `blankcut promote --repo <GITHUB_URL> [--model claude\|openai\|gemini]`
-
-Trigger the full LLM-driven onboarding run on Meerkat: it analyzes the repo,
-generates the CI workflow, reconciles the build pipeline, and opens the necessary
-pull requests. The CLI polls and renders phase transitions until the job reaches
-a terminal state. `--model` selects the LLM (default `claude`).
-
-Once deployed, the app is served at `https://<app>.blankcut.app` by default;
-`blankcut context env` lists the exact hostnames it answers on.
-
-!!! note "App addresses are moving to `.blankcut.app`"
-    Apps were previously served at `<app>.blankcut.com`. Those addresses keep
-    working; after 2026-10-28 they redirect to the app's `.blankcut.app`
-    address. Point webhooks, OAuth redirect URIs, and API clients at
-    `.blankcut.app` before then rather than relying on the redirect.
-
-### `blankcut status --app <APP>`
-
-Aggregate live status across GitHub Actions, ArgoCD, Kubernetes, and GitLab into
-one view. Partial upstream failures show as empty for that source rather than
-failing the whole call.
-
-
----
-
-## Projects & backing services
-
-### `blankcut provision --name <NAME> [--stack nextjs|vite|marketing] [--tier sandbox|production]`
-
-Create a whole new project: a repository seeded with a runnable starter (backing
-services pre-wired, a `/health` endpoint, and a `CLAUDE.md` that steers a coding
-agent toward the supported stack), the app registered with the platform, and its
-backing services provisioned. Deploy it afterwards with
-`blankcut promote --app <NAME>`.
-
-The repository is created in your own GitHub organization by default. `--owner`
-names the target org and `--installation-id` identifies the Blank Cut GitHub App
-installation on it.
-
-| Flag | Effect |
-|---|---|
-| `--stack` | Starter to seed: `nextjs` (default), `vite`, or `marketing` |
-| `--tier` | `production` (default), or `sandbox` for a capped MVP/prototype environment with no custom domain and no SLA |
-| `--database` / `--no-database` | Force a dedicated Postgres and migration pipeline on or off. Omit both to take the stack's default — application stacks get one, marketing sites do not |
-| `--display-name` | Human-readable label for the project |
+## Backing services
 
 ### `blankcut database add --app <APP>`
 
-Attach a managed Postgres to an app that was created without one. Safe to call
-speculatively: the platform refuses if the app already has a database.
+Add a dedicated managed Postgres to an app created without one. Meerkat creates
+the database, puts its connection details in the app's secrets (`DATABASE_URL`,
+`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) and runs the
+app's migrations. It takes a few minutes and carries on after the command
+returns. Safe to run speculatively: an app that already has a database is
+refused, never replaced.
 
 ### `blankcut redis enable|disable|reset --app <APP>`
 
-Record whether the app gets the platform's managed Redis. Without an explicit
-decision, Redis is inferred from the repository on **every** deploy — so it can
-appear or disappear on a deploy that had nothing to do with it. A decision made
-here sticks until it is changed; `reset` clears it and hands the choice back to
-the repository analysis.
+Decide whether the app gets Meerkat's managed Redis. Without a decision, Redis is
+inferred from the repository on **every** deploy, so it can appear or disappear
+on a deploy that had nothing to do with it. A decision sticks until you change
+it; `reset` hands it back to the repository analysis. It takes effect on the
+next deploy. On the Rough Cut tier Redis is a billed add-on; on production it's
+included.
 
 ### `blankcut storage add|status|rm --app <APP>`
 
-Give an app somewhere to keep files — images, video, uploads, anything it needs
-to serve or hold onto.
+File storage for images, video and uploads, reached with the app's own identity
+and no access keys. See [File storage](storage.md).
 
 | Command | Effect |
 |---|---|
-| `blankcut storage add --app <APP>` | Provision storage. Deploy afterwards so the running app picks it up |
-| `blankcut storage status --app <APP>` | Show usage against the app's limit |
-| `blankcut storage rm --app <APP> --yes` | Delete the app's files permanently |
-
-Files live in one of two places: `public`, which gets a stable public URL, or
-`private`, reachable only through a time-limited link the application generates.
-The app reads and writes both using its own identity, so there are no access keys
-to copy, paste or leak.
-
-### `blankcut deprovision --app <APP>`
-
-Tear an app down. Secrets are deleted immediately and irreversibly; the
-configuration removals are opened as **review-gated merge requests** against the
-platform's GitOps and Terraform repositories, so nothing disappears from the
-cluster until a maintainer merges them.
-
-| Flag | Effect |
-|---|---|
-| `--suspend` | Reversible. Prunes the running workload but preserves secrets, repository, registry entry and build pipeline. Restore with `blankcut promote` |
-| `--transfer-to <OWNER>` | Tear down **and** transfer the GitHub repository to another owner. Irreversible |
-| `--delete-repo` | Tear down **and** delete the GitHub repository. Irreversible |
-| `--yes` | Skip the interactive confirmation |
-
-### `blankcut domains`
-
-Buy, transfer and connect custom domains, and manage their DNS. Registration,
-transfer and renewal are charged at cost to your organization's card; the
-walkthrough, including moving a domain in from GoDaddy or Squarespace, is in
-[Domains](domains.md).
-
-| Command | Effect |
-|---|---|
-| `blankcut domains list` | Your domains and any purchase or transfer still in progress |
-| `blankcut domains search <name>` | Availability, yearly price and alternatives |
-| `blankcut domains buy <domain> [--app <APP>]` | Register a domain (owner only) |
-| `blankcut domains contact set ...` | The registrant contact used for registrations and transfers |
-| `blankcut domains transfer check\|dns\|start <domain>` | Move a domain in from another registrar |
-| `blankcut domains attach <domain> --app <APP>` | Serve a domain from an app (connects a domain you own elsewhere, too) |
-| `blankcut domains detach <domain>` | Stop serving it, keep the domain |
-| `blankcut domains status <domain>` | Certificate, DNS records, registration and any order |
-| `blankcut domains records <domain>` / `records set` / `records rm` | DNS for domains Blank Cut hosts |
-| `blankcut domains auto-renew <domain> on\|off` | Keep renewing, or let it lapse at expiry |
-| `blankcut domains release <domain>` | Points you to Meerkat, where an owner moves a domain to another registrar |
-| `blankcut domains verify-email <domain>` | Resend the registry's owner-verification email |
+| `blankcut storage add --app <APP>` | Provision storage, or repair a half-finished provision. Deploy afterwards. |
+| `blankcut storage status --app <APP>` | Usage against the app's limit. |
+| `blankcut storage rm --app <APP> --yes` | Delete the app's files permanently. |
 
 ---
 
-## API keys
+## Scheduled jobs
 
-### `blankcut keys provision --app <APP>`
+### `blankcut schedule add|list|rm --app <APP>`
 
-Mint the app-scoped `BLANKCUT_API_KEY` and set it as a secret on the app's
-repository, so the repo's pipeline can call the platform without a shared
-credential. Scoped to that one app, and re-running rotates it — any previously
-issued CI key for the app stops working.
+Call one of your app's own endpoints on a schedule. See
+[Scheduled jobs](schedule.md).
+
+| Command | Effect |
+|---|---|
+| `blankcut schedule add <name> --cron "<expr>" --path <endpoint>` | Add a job. `--method` (default `POST`) and `--timeout` (seconds, default `120`) are optional. |
+| `blankcut schedule list` | The app's jobs as deployed, pending changes, and the app's job limit. |
+| `blankcut schedule rm <name>` | Remove a job. It may run once more while the change goes through. |
+
+---
+
+## Image scanning
+
+### `blankcut scan [--app <APP>] [--json]`
+
+The vulnerabilities the image scan found, for the last build and for what's
+running now, grouped by the upgrade that fixes them. See
+[Image scanning](scan.md).
+
+| Command | Effect |
+|---|---|
+| `blankcut scan waive --vuln <ID> --pkg <PKG> --reason "<why>"` | Ask the Blank Cut team to waive one finding you can't fix yet. |
+| `blankcut scan waivers` | The app's waivers and where each stands. |
+
+---
+
+## Domains
+
+### `blankcut domains`
+
+Buy, transfer in and connect custom domains, and manage their DNS. Registration,
+transfer and renewal are charged at cost to your organization's card. See
+[Domains](domains.md) for the walkthrough. Every subcommand accepts `--json`.
+
+| Command | Effect |
+|---|---|
+| `blankcut domains list` | Your domains, and any purchase or transfer still in progress |
+| `blankcut domains search <name>` | Availability, yearly price and alternatives |
+| `blankcut domains buy <domain> [--app <APP>]` | Register a domain (owner only). Shows the price and asks first. |
+| `blankcut domains contact` / `contact set ...` | Show or set the registrant contact used for registrations and transfers |
+| `blankcut domains transfer check\|dns\|start <domain>` | Move a domain in from another registrar |
+| `blankcut domains attach <domain> --app <APP>` | Serve a domain from an app (also connects a domain registered elsewhere) |
+| `blankcut domains detach <domain>` | Stop serving it, keep the domain |
+| `blankcut domains status <domain>` | Certificate, DNS records, registration and any order |
+| `blankcut domains records <domain>` / `records set` / `records rm` | DNS records for domains Blank Cut hosts |
+| `blankcut domains auto-renew <domain> on\|off` | Keep renewing, or let it lapse at expiry |
+| `blankcut domains verify-email <domain>` | Resend the registry's owner-verification email |
+| `blankcut domains release <domain>` | Points you to Meerkat, where an owner moves a domain to another registrar |
+
+| Flag | On | Effect |
+|---|---|---|
+| `--no-www` | `buy`, `attach`, `transfer start` | Don't also serve `www.<domain>` (by default it's served and redirects to the bare domain). |
+| `--no-auto-renew` | `buy` | Let the registration expire after a year. |
+| `--yes` | `buy`, `transfer start` | Skip the price confirmation. Only after the person paying has agreed to the price. |
+| `--zone-file <FILE>` | `transfer dns` | A BIND zone file exported from the current DNS host, for a complete copy. |
+| `--skip-dns-check` | `transfer start` | Start even though the domain's DNS hasn't been copied to Blank Cut. |
+
+---
+
+## CI key
+
+Onboarding and `provision` give each app's repository its own CI key, stored as
+the `BLANKCUT_API_KEY` repository secret and scoped to that one app.
+`blankcut keys provision --app <APP>` mints a replacement and rotates the old
+one; it needs a Blank Cut team key, so ask the team if a repository's CI key
+needs replacing.
+
+---
+
+## Environment variables
+
+| Variable | Read by | Meaning |
+|---|---|---|
+| `BLANKCUT_API_KEY` | Every remote command | The API key, instead of a saved config. |
+| `BLANKCUT_ENDPOINT` | Every remote command | The Meerkat API. Defaults to `https://api.blankcut.com`. |
+| `BLANKCUT_DOMAIN_AUTH_CODE` | `domains transfer start` | A domain's transfer code, so it isn't typed into your shell history. |
+| `BLANKCUT_INSTALL_DIR` | The install script | Where to install the binary. Defaults to `/usr/local/bin`. |
+| `BLANKCUT_VERSION` | The install script | A release to install instead of the latest, for example `v0.23.1`. |

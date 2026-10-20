@@ -26,8 +26,9 @@ takes care of <span id="bc-rotator" class="bc-rotator">builds and deploys</span>
 
     ---
 
-    Ship a GitHub repo to production on Meerkat: scaffolding, validation,
-    secrets, promotion, and live status, all from the `blankcut` CLI.
+    Ship a GitHub repo to production on Meerkat from the `blankcut` CLI:
+    connect or create a project, deploy it, and manage its secrets, storage,
+    scheduled jobs, image scans and domains.
 
 -   :material-kubernetes:{ .bc-card-icon } **[Kubernetes MCP Server](kubernetes-mcp-server/index.md)**
 
@@ -39,16 +40,17 @@ takes care of <span id="bc-rotator" class="bc-rotator">builds and deploys</span>
 </div>
 
 !!! note "For coding agents"
-    Working in an onboarded repo? That repo's `CLAUDE.md` is the binding source
-    of truth — these pages are its public, browsable version. Run
-    `blankcut upgrade --check` at the start of any session that uses the CLI.
+    Working in a repo connected to Meerkat? That repo's `CLAUDE.md` is the
+    binding source of truth; these pages are its public, browsable version. Run
+    `blankcut upgrade --check` and `blankcut sync` at the start of any session
+    that uses the CLI. See [Coding agents](cli/agents.md).
 
 ## New to Meerkat?
 
-[Create an account at **meerkat.blankcut.com**](https://meerkat.blankcut.com/register)
-— the Meerkat console, where you join your organization, spin up projects, and
-get the API key the CLI uses. Then head to the [CLI guide](cli/index.md) to
-install and configure. Platform health is at
+[Create an account at **meerkat.blankcut.com**](https://meerkat.blankcut.com/register),
+the Meerkat console, where you join your organization and connect GitHub. Then
+[install the CLI](cli/index.md#install), run `blankcut login`, and
+[deploy your first app](cli/deploy.md). Platform health is at
 [status.blankcut.com](https://status.blankcut.com).
 
 These docs are public; the platform binaries and internals are not.
