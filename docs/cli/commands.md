@@ -308,4 +308,4 @@ needs replacing.
 | `BLANKCUT_ENDPOINT` | Every remote command | The Meerkat API. Defaults to `https://api.blankcut.com`. |
 | `BLANKCUT_DOMAIN_AUTH_CODE` | `domains transfer start` | A domain's transfer code, so it isn't typed into your shell history. |
 | `BLANKCUT_INSTALL_DIR` | The install script | Where to install the binary. Defaults to `/usr/local/bin`. |
-| `BLANKCUT_VERSION` | The install script | A release to install instead of the latest, for example `v0.23.2`. |
+| `BLANKCUT_VERSION` | The install script | A release to install instead of the latest, for example `v0.23.3`. |

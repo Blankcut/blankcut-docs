@@ -64,7 +64,6 @@ CI gate:
 - A `Dockerfile` exists and uses a multi-stage build
 - A `docker-compose.yml` exists
 - `.env` is listed in `.gitignore`, and `.env.example` exists
-- A `docs/` directory exists, and Node projects have a `tsconfig.json` (v0.23.2 and later; earlier builds asked every repo for one)
 - No hardcoded secrets (API keys, tokens, connection strings with passwords)
 
 `blankcut validate --fix` hands the failing checks to Meerkat, which opens a
