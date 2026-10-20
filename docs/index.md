@@ -34,8 +34,9 @@ takes care of <span id="bc-rotator" class="bc-rotator">builds and deploys</span>
 
     ---
 
-    Open source from Blank Cut: AI-powered analysis and troubleshooting for
-    your Kubernetes + GitOps workflows over the Model Context Protocol.
+    Open source from Blank Cut: ask Claude about your Kubernetes cluster,
+    ArgoCD and GitLab over a REST API, with fast rule-based findings for
+    failing workloads and CronJobs.
 
 </div>
 

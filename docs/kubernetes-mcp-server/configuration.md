@@ -1,300 +1,57 @@
+# Configuration
+
+The server reads one YAML file at startup. Environment variables can fill in or
+override parts of it, and two command-line flags choose the file and the log
+level. This page lists every setting the server reads.
+
 ---
-title: Configuration Guide
-description: Learn how to configure and customize the Kubernetes Claude MCP server to suit your needs and environment.
-date: 2025-03-01
-order: 4
-tags: ['configuration', 'setup']
+
+## How the config is loaded
+
+1. **Read the file** given by `--config` (default `config.yaml` in the working
+   directory; the Docker image and Helm chart use `/app/config.yaml`).
+2. **Expand variables.** Every `${NAME}` or `$NAME` in the file is replaced with
+   that environment variable's value, or with nothing if it isn't set. Use this
+   to keep secrets out of the file:
+
+    ```yaml
+    claude:
+      apiKey: "${CLAUDE_API_KEY}"
+    ```
+
+    Expansion covers the whole file, so a literal `$` in a value, such as a
+    password, is read as the start of a variable name and mangled. Pass such
+    values through one of the [override variables](#environment-variables)
+    instead. Those are used as-is.
+
+3. **Apply overrides.** A handful of [environment variables](#environment-variables)
+   replace specific keys when they're set and non-empty.
+4. **Validate.** If a check fails, the server logs
+   `"msg":"Invalid configuration"` with the reason and exits. The checks are
+   listed under [The server won't start](troubleshooting-resources.md#the-server-wont-start).
+
+The file is read once. To apply a change, restart the server. `SIGINT` and
+`SIGTERM` shut it down cleanly; there is no reload signal.
+
+There are no built-in defaults: a key you leave out is empty, `0` or `false`.
+The tables below say what that means for each key.
+
 ---
 
-# Configuration Guide
-
-This guide explains how to configure Kubernetes Claude MCP to work optimally in your environment. The server is highly configurable, allowing you to customize its behavior and integrations.
-
-## Configuration File
-
-Kubernetes Claude MCP is primarily configured using a YAML file (`config.yaml`). This file contains settings for the server, Kubernetes connection, ArgoCD integration, GitLab integration, and Claude AI.
-
-Here's a complete example of the configuration file with explanations:
+## Full example
 
 ```yaml
-# Server configuration
 server:
-  # Address to bind the server on (host:port)
   address: ":8080"
-  # Read timeout in seconds
   readTimeout: 30
-  # Write timeout in seconds
-  writeTimeout: 60
-  # Authentication settings
-  auth:
-    # API key for authenticating requests
-    apiKey: "your_api_key_here"
-
-# Kubernetes connection settings
-kubernetes:
-  # Path to kubeconfig file (leave empty for in-cluster)
-  kubeconfig: ""
-  # Whether to use in-cluster config
-  inCluster: false
-  # Default Kubernetes context (leave empty for current)
-  defaultContext: ""
-  # Default namespace
-  defaultNamespace: "default"
-
-# ArgoCD integration settings
-argocd:
-  # ArgoCD server URL
-  url: "https://argocd.example.com"
-  # ArgoCD auth token (optional if using username/password)
-  authToken: ""
-  # ArgoCD username (optional if using token)
-  username: "admin"
-  # ArgoCD password (optional if using token)
-  password: "password"
-  # Whether to allow insecure connections
-  insecure: false
-
-# GitLab integration settings
-gitlab:
-  # GitLab server URL
-  url: "https://gitlab.com"
-  # GitLab personal access token
-  authToken: "your_gitlab_token"
-  # GitLab API version
-  apiVersion: "v4"
-  # Default project path
-  projectPath: "namespace/project"
-
-# Claude AI settings
-claude:
-  # Claude API key
-  apiKey: "your_claude_api_key"
-  # Claude API base URL
-  baseURL: "https://api.anthropic.com"
-  # Claude model ID
-  modelID: "claude-sonnet-4.5-20250514"
-  # Maximum tokens for Claude responses
-  maxTokens: 8192
-  # Temperature for Claude responses (0.0-1.0)
-  temperature: 0.3
-```
-
-## Configuration Options
-
-### Server Configuration
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `address` | Host and port to bind the server (":8080" means all interfaces, port 8080) | ":8080" |
-| `readTimeout` | HTTP read timeout in seconds | 30 |
-| `writeTimeout` | HTTP write timeout in seconds | 60 |
-| `auth.apiKey` | API key for authenticating requests | - |
-
-### Kubernetes Configuration
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `kubeconfig` | Path to kubeconfig file | "" (auto-detect) |
-| `inCluster` | Whether to use in-cluster configuration | false |
-| `defaultContext` | Default Kubernetes context | "" (current context) |
-| `defaultNamespace` | Default namespace for operations | "default" |
-
-### ArgoCD Configuration
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `url` | ArgoCD server URL | - |
-| `authToken` | ArgoCD auth token | "" |
-| `username` | ArgoCD username | "" |
-| `password` | ArgoCD password | "" |
-| `insecure` | Allow insecure connections to ArgoCD | false |
-
-### GitLab Configuration
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `url` | GitLab server URL | "https://gitlab.com" |
-| `authToken` | GitLab personal access token | - |
-| `apiVersion` | GitLab API version | "v4" |
-| `projectPath` | Default project path | "" |
-
-### Claude Configuration
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `apiKey` | Claude API key | - |
-| `baseURL` | Claude API base URL | "https://api.anthropic.com" |
-| `modelID` | Claude model ID | "claude-sonnet-4.5-20250514" |
-| `maxTokens` | Maximum tokens for response | 8192 |
-| `temperature` | Temperature for responses (0.0-1.0) | 0.3 |
-
-## Environment Variables
-
-In addition to the configuration file, you can use environment variables to override any configuration option. This is especially useful for secrets and credentials.
-
-Environment variables follow this pattern:
-
-- For server options: `SERVER_OPTION_NAME`
-- For Kubernetes options: `KUBERNETES_OPTION_NAME`
-- For ArgoCD options: `ARGOCD_OPTION_NAME`
-- For GitLab options: `GITLAB_OPTION_NAME`
-- For Claude options: `CLAUDE_OPTION_NAME`
-
-Common examples:
-
-```bash
-# API keys
-export CLAUDE_API_KEY=your_claude_api_key
-export API_KEY=your_api_key_for_server
-
-# ArgoCD credentials
-export ARGOCD_USERNAME=your_argocd_username
-export ARGOCD_PASSWORD=your_argocd_password
-
-# GitLab credentials
-export GITLAB_AUTH_TOKEN=your_gitlab_token
-```
-
-## Variable Interpolation
-
-The configuration file supports variable interpolation, allowing you to reference environment variables in your config. This is useful for injecting secrets:
-
-```yaml
-server:
-  auth:
-    apiKey: "${API_KEY}"
-
-claude:
-  apiKey: "${CLAUDE_API_KEY}"
-```
-
-## Configuration Hierarchy
-
-The server reads configuration in the following order (later overrides earlier):
-
-1. Default values
-2. Configuration file
-3. Environment variables
-
-This allows you to have a base configuration file and override specific settings with environment variables.
-
-## ArgoCD Integration
-
-### Authentication Methods
-
-There are two ways to authenticate with ArgoCD:
-
-1. **Token-based authentication**: Provide an auth token in `argocd.authToken`.
-2. **Username/password authentication**: Provide username and password in `argocd.username` and `argocd.password`.
-
-For production environments, token-based authentication is recommended for security.
-
-### Insecure Mode
-
-If you're using a self-signed certificate for ArgoCD, you can set `argocd.insecure` to `true` to skip certificate validation. However, this is not recommended for production environments.
-
-## GitLab Integration
-
-### Personal Access Token
-
-To integrate with GitLab, you need a personal access token with the following scopes:
-
-- `read_api` - For accessing repository information
-- `read_repository` - For accessing repository content
-- `read_registry` - For accessing container registry (if needed)
-
-### Self-hosted GitLab
-
-If you're using a self-hosted GitLab instance, set the `gitlab.url` to your GitLab URL:
-
-```yaml
-gitlab:
-  url: "https://gitlab.your-company.com"
-  # Other GitLab settings...
-```
-
-## Claude AI Configuration
-
-### Model Selection
-
-Kubernetes Claude MCP supports different Claude model variants. The default is `claude-sonnet-4.5-20250514` (Claude Sonnet 4.5), but you can choose others based on your needs:
-
-- `claude-sonnet-4.5-20250514` - Latest and most capable model (recommended)
-- `claude-sonnet-4-20250514` - Claude Sonnet 4, excellent performance
-- `claude-3-5-sonnet-20241022` - Claude 3.5 Sonnet, balanced performance
-- `claude-3-opus-20240229` - Claude 3 Opus, good for complex analysis
-- `claude-3-haiku-20240307` - Claude 3 Haiku, fastest model
-
-### Response Parameters
-
-You can adjust two parameters that affect Claude's responses:
-
-1. `maxTokens` - Maximum number of tokens in the response (1-8192)
-2. `temperature` - Controls randomness in responses (0.0-1.0)
-   - Lower values (e.g., 0.3) make responses more deterministic and focused
-   - Higher values (e.g., 0.7) make responses more creative
-
-For troubleshooting and analysis, a temperature of 0.3-0.5 is recommended.
-
-## Advanced Configuration
-
-### Running Behind a Proxy
-
-If the server needs to connect to external services through a proxy, set the standard HTTP proxy environment variables:
-
-```bash
-export HTTP_PROXY=http://proxy.example.com:8080
-export HTTPS_PROXY=http://proxy.example.com:8080
-export NO_PROXY=localhost,127.0.0.1,.cluster.local
-```
-
-### TLS Configuration
-
-For production deployments, it's recommended to use TLS. This is typically handled by your ingress controller, load balancer, or API gateway.
-
-If you need to terminate TLS at the server (not recommended for production), you can use a reverse proxy like Nginx or Traefik.
-
-### Logging Configuration
-
-The logging level can be controlled with the `LOG_LEVEL` environment variable:
-
-```bash
-export LOG_LEVEL=debug  # debug, info, warn, error
-```
-
-For production, `info` is recommended. Use `debug` only for troubleshooting.
-
-## Configuration Examples
-
-### Minimal Configuration
-
-```yaml
-server:
-  address: ":8080"
-  auth:
-    apiKey: "your_api_key_here"
-
-kubernetes:
-  inCluster: false
-
-claude:
-  apiKey: "your_claude_api_key"
-  modelID: "claude-sonnet-4.5-20250514"
-```
-
-### Production Kubernetes Configuration
-
-```yaml
-server:
-  address: ":8080"
-  readTimeout: 60
-  writeTimeout: 120
+  writeTimeout: 300
   auth:
     apiKey: "${API_KEY}"
 
 kubernetes:
-  inCluster: true
-  defaultNamespace: "default"
+  inCluster: false
+  kubeconfig: ""            # "" = ~/.kube/config
+  defaultContext: ""        # "" = the kubeconfig's current context
 
 argocd:
   url: "https://argocd.example.com"
@@ -302,86 +59,300 @@ argocd:
   insecure: false
 
 gitlab:
-  url: "https://gitlab.example.com"
+  url: "https://gitlab.com"
   authToken: "${GITLAB_AUTH_TOKEN}"
   apiVersion: "v4"
 
 claude:
   apiKey: "${CLAUDE_API_KEY}"
   baseURL: "https://api.anthropic.com"
-  modelID: "claude-sonnet-4.5-20250514"
+  modelID: "claude-sonnet-5"
   maxTokens: 8192
-  temperature: 0.3
+  # temperature: leave unset for claude-sonnet-5
 ```
 
-## Troubleshooting Configuration
+Leave out the `argocd` or `gitlab` block (or its `url`) to run without that
+integration.
 
-If you encounter issues with your configuration:
+---
 
-1. Check that all required fields are set correctly
-2. Verify that environment variables are correctly set and accessible to the server
-3. Test connectivity to external services (Kubernetes, ArgoCD, GitLab)
-4. Check the server logs for error messages
-5. Ensure your Claude API key is valid and has sufficient quota
+## `server`
 
-### Common Issues
+| Key | Required | What it does |
+|---|---|---|
+| `address` | yes | Address to listen on, as `host:port`. `":8080"` listens on every interface; `"127.0.0.1:8080"` only on localhost. |
+| `readTimeout` | no | Seconds allowed to read a request. `0` or unset: no limit. |
+| `writeTimeout` | no | Seconds allowed from receiving a request to finishing the response, which includes all the work the request does. `0` or unset: no limit. Each Claude call can take up to 120 seconds, and asking about a whole namespace makes two, so set this to `300` or leave it unset. When it's too short, the client gets a closed connection and no response. |
+| `auth.apiKey` | in practice | The key clients must send in `X-API-Key` or `Authorization: Bearer`. The server starts without one, but then every endpoint except health answers `401`, so an unset `${API_KEY}` shows up as a key that's never accepted. Overridden by `API_KEY`. |
 
-#### "Failed to create Kubernetes client"
+---
 
-This usually indicates an issue with the Kubernetes configuration:
+## `kubernetes`
 
-- Check if the kubeconfig file exists and is accessible
-- Verify the permissions of the kubeconfig file
-- For in-cluster config, ensure the pod has the proper service account
+| Key | Required | What it does |
+|---|---|---|
+| `inCluster` | no | `true`: use the Pod's service account. Use it when the server runs in the cluster it inspects. Can't be combined with a kubeconfig path, and that includes `KUBECONFIG` being set. |
+| `kubeconfig` | no | Path to one kubeconfig file. Empty: `~/.kube/config`. Overridden by `KUBECONFIG`, which must also be a single path; a colon-separated list isn't merged. Ignored when `inCluster` is `true`. |
+| `defaultContext` | no | Context to use from the kubeconfig. Empty: the file's current context. |
+| `defaultNamespace` | no | Accepted, but no endpoint uses it in v1.3.0. Pass the namespace on each request. |
 
-#### "Failed to connect to ArgoCD"
+If the server can't build a Kubernetes client (a missing kubeconfig, an unknown
+context, no service account), it exits. If it builds one but can't reach the
+API server, it starts anyway and reports `kubernetes: unavailable`.
 
-ArgoCD connectivity issues are typically related to:
+---
 
-- Incorrect URL or credentials
-- Network connectivity issues
-- Certificate validation (if `insecure: false`)
+## `argocd`
 
-Try using the `--log-level=debug` flag to get more details:
+ArgoCD is optional. With no `url`, the ArgoCD endpoints fail and health reports
+ArgoCD as `unavailable`.
 
-```bash
-LOG_LEVEL=debug ./mcp-server --config config.yaml
+| Key | Required | What it does |
+|---|---|---|
+| `url` | no | ArgoCD's base URL, such as `https://argocd.example.com`. The server adds `/api/v1/...` itself. Overridden by `ARGOCD_SERVER`. |
+| `authToken` | one of token or username/password | An ArgoCD API token (`argocd account generate-token`). Overridden by `ARGOCD_AUTH_TOKEN`. |
+| `username`, `password` | one of token or username/password | A local ArgoCD account. The server opens a session and opens a new one when ArgoCD rejects the old one. Overridden by `ARGOCD_USERNAME` and `ARGOCD_PASSWORD`. |
+| `insecure` | no | `true` skips TLS certificate verification. For test instances only. |
+
+When both a token and a username/password are configured, the token is used.
+
+The account needs read access to Applications, for example ArgoCD's built-in
+`role:readonly`. The server checks this itself: at startup and every 60
+seconds it asks ArgoCD whether the token may `get` applications in every
+project, and reports the answer in the [health endpoints](api-overview.md#health).
+
+---
+
+## `gitlab`
+
+GitLab is optional. With no `url`, the GitLab endpoints fail and health reports
+GitLab as `unavailable`.
+
+| Key | Required | What it does |
+|---|---|---|
+| `url` | no | GitLab's base URL: `https://gitlab.com` or your own instance. Overridden by `GITLAB_URL`. |
+| `authToken` | when `url` is set | A personal, group or project access token, sent as `PRIVATE-TOKEN`. The `read_api` scope is enough. Overridden by `GITLAB_AUTH_TOKEN`. |
+| `apiVersion` | set it to `v4` | The API version in request paths. If you leave it empty, health still reports GitLab as `available`, but every project, pipeline and merge request call fails. |
+
+The project to look at comes from each request, or from the repository URL of
+the ArgoCD Application that manages a resource. There is no default project
+setting; a `projectPath` key, which older examples show, is ignored.
+
+---
+
+## `claude`
+
+| Key | Required | What it does |
+|---|---|---|
+| `apiKey` | yes, unless [federation](#workload-identity-federation) is fully configured | Your Claude API key, sent as `x-api-key`. Overridden by `CLAUDE_API_KEY`. |
+| `baseURL` | yes | `https://api.anthropic.com`, without a trailing slash. The server adds `/v1/messages`. |
+| `modelID` | yes | The Claude model to use. See [Choosing a model](#choosing-a-model). |
+| `maxTokens` | yes | Most tokens one answer may use, from `1` to `8192`. |
+| `temperature` | no | `0.0` to `1.0`. `0` or unset means the field isn't sent and the model uses its default. Some models reject any explicit value. |
+| `federation` | no | [Workload Identity Federation](#workload-identity-federation) settings. |
+
+### Choosing a model
+
+The server passes `modelID` to the Claude Messages API unchanged, so any model
+ID the API accepts works. These are the ones the project's examples use:
+
+| Model ID | Notes |
+|---|---|
+| `claude-sonnet-5` | Recommended. Leave `temperature` unset: Claude Sonnet 5 rejects any explicit value with a `400`. It thinks before answering by default, and that thinking counts against `maxTokens`, so keep `maxTokens` at `8192`. Set too low, the answer can come back short or empty. |
+| `claude-sonnet-4-6` | The Helm chart's default. Accepts `temperature`. |
+| `claude-opus-4-6` | A larger model: slower, and more expensive per token. Accepts `temperature`. |
+| `claude-haiku-4-5` | Fastest and cheapest. Accepts `temperature`. |
+
+On models that accept it, a low temperature such as `0.3` keeps answers focused.
+
+---
+
+## Workload Identity Federation
+
+Federation lets the server authenticate to Claude without a long-lived API key.
+The server reads a short-lived OIDC token issued by an identity provider you
+already run (in Kubernetes, a projected service-account token), exchanges it
+for a Claude access token, and uses that instead. There's no API key to store
+or rotate. It's optional; without a `federation` block the server uses
+`apiKey`.
+
+First set up an issuer, a service account and a federation rule in the Claude
+Console (**Settings → Workload identity**). Then configure the server:
+
+```yaml
+claude:
+  baseURL: "https://api.anthropic.com"
+  modelID: "claude-sonnet-5"
+  maxTokens: 8192
+  federation:
+    identityTokenFile: "/var/run/secrets/anthropic.com/token"
+    federationRuleID: "fdrl_..."
+    organizationID: "00000000-0000-0000-0000-000000000000"
+    serviceAccountID: "svac_..."
 ```
 
-#### "Failed to connect to GitLab"
+| Key | Environment variable | Required | What it is |
+|---|---|---|---|
+| `identityTokenFile` | `ANTHROPIC_IDENTITY_TOKEN_FILE` | yes | Path of the file holding the OIDC token. Read again for every exchange. |
+| `federationRuleID` | `ANTHROPIC_FEDERATION_RULE_ID` | yes | The federation rule's ID. |
+| `organizationID` | `ANTHROPIC_ORGANIZATION_ID` | yes | Your Claude organization's ID. |
+| `serviceAccountID` | `ANTHROPIC_SERVICE_ACCOUNT_ID` | no | The service account's ID. Sent when set. |
+| `workspaceID` | `ANTHROPIC_WORKSPACE_ID` | only for multi-workspace rules | The workspace to act in, when the rule covers more than one. |
 
-GitLab connectivity issues may be due to:
+The environment variables use the same names as the official Anthropic SDKs,
+so a workload already set up for federation needs no extra wiring. The SDKs'
+`ANTHROPIC_IDENTITY_TOKEN` (the token itself rather than a file) isn't read
+here; use a file.
 
-- Invalid personal access token
-- Insufficient permissions for the token
-- Network connectivity issues
+How it behaves:
 
-#### "Claude API error"
+- **Federation turns on when the three required fields are set.** With only
+  some of them, the server ignores federation and uses `apiKey`; if `apiKey` is
+  also empty, it refuses to start.
+- **When federation is on, it wins.** The server uses it even if `apiKey` is
+  also set, and never sends both.
+- **Exchange.** The server posts the token to `<baseURL>/v1/oauth/token`, keeps
+  the access token it gets back, and fetches a new one two minutes before that
+  one expires.
+- **Failure.** If the exchange fails, requests that need Claude fail with a
+  message that includes `token exchange failed with status ...`. A `401` there
+  usually means the rule doesn't match the token's subject or audience, or the
+  token was already used.
 
-Claude API errors usually indicate:
+### In Kubernetes
 
-- Invalid API key
-- Rate limiting or quota issues
-- Incorrect model ID
+Project a service-account token with the Claude API as its audience, and point
+`identityTokenFile` at it:
 
-## Updating Configuration
-
-You can update the configuration without restarting the server by sending a SIGHUP signal:
-
-```bash
-# Find the process ID
-ps aux | grep mcp-server
-
-# Send SIGHUP signal
-kill -HUP <process_id>
+```yaml
+# In the Pod spec
+containers:
+  - name: kubernetes-mcp-server
+    volumeMounts:
+      - name: anthropic-token
+        mountPath: /var/run/secrets/anthropic.com
+        readOnly: true
+volumes:
+  - name: anthropic-token
+    projected:
+      sources:
+        - serviceAccountToken:
+            path: token
+            audience: https://api.anthropic.com
+            expirationSeconds: 600
 ```
 
-For containerized deployments, you'll need to restart the container to apply configuration changes.
+Two things to get right:
 
-## Next Steps
+- **The audience must be `https://api.anthropic.com`.** On EKS, don't reuse the
+  IRSA token in `AWS_WEB_IDENTITY_TOKEN_FILE`: its audience is
+  `sts.amazonaws.com`, and the exchange rejects it. Project a second token.
+- **Keep `expirationSeconds` short.** Identity tokens are single-use, and
+  Kubernetes only replaces the file at about 80% of its lifetime. If the file
+  lives longer than the Claude access token, the next renewal presents a token
+  that was already spent and fails. `600` is the shortest Kubernetes allows.
 
-Now that you've configured Kubernetes Claude MCP, you can:
+The Helm chart has no settings for this yet; see
+[Installation](installation.md#chart-values).
 
-- [Explore the API](api-overview.md) to learn how to interact with the server
-- Try some examples to see common use cases
-- [Learn about troubleshooting](troubleshooting-resources.md) to diagnose issues in your cluster
+---
+
+## Environment variables
+
+Override variables replace a key from the file when they're set and non-empty.
+
+| Variable | Replaces |
+|---|---|
+| `API_KEY` | `server.auth.apiKey` |
+| `KUBECONFIG` | `kubernetes.kubeconfig` (a single path) |
+| `CLAUDE_API_KEY` | `claude.apiKey` |
+| `ANTHROPIC_IDENTITY_TOKEN_FILE` | `claude.federation.identityTokenFile` |
+| `ANTHROPIC_FEDERATION_RULE_ID` | `claude.federation.federationRuleID` |
+| `ANTHROPIC_ORGANIZATION_ID` | `claude.federation.organizationID` |
+| `ANTHROPIC_SERVICE_ACCOUNT_ID` | `claude.federation.serviceAccountID` |
+| `ANTHROPIC_WORKSPACE_ID` | `claude.federation.workspaceID` |
+| `ARGOCD_SERVER` | `argocd.url` |
+| `ARGOCD_AUTH_TOKEN` | `argocd.authToken` |
+| `ARGOCD_USERNAME`, `ARGOCD_PASSWORD` | `argocd.username`, `argocd.password` |
+| `GITLAB_URL` | `gitlab.url` |
+| `GITLAB_AUTH_TOKEN` | `gitlab.authToken` |
+
+These are also read:
+
+| Variable | Effect |
+|---|---|
+| `ARGOCD_TOKEN` | Used as the ArgoCD token when `ARGOCD_AUTH_TOKEN` isn't set. On its own it doesn't satisfy the startup check, so reference it in the file as well (`authToken: "${ARGOCD_TOKEN}"`), as the Helm chart does. |
+| `GITLAB_TOKEN` | The same, for GitLab. |
+| `SECRETS_DIR` | Directory of [credential files](#credential-files). Default `./secrets`. |
+| `VAULT_ADDR`, `VAULT_TOKEN` | Vault isn't supported. **Unset both.** When both are set, v1.3.0 replaces the ArgoCD and GitLab credentials with placeholder values, and every call to those systems fails with `401`. |
+| `LOG_LEVEL` | Has no effect: the `--log-level` flag always sets the level. |
+
+---
+
+## Credential files
+
+If the directory named by `SECRETS_DIR` (default `./secrets`, relative to the
+working directory) exists, the server looks there for ArgoCD and GitLab
+credentials before it looks at environment variables or the config file:
+
+```text
+secrets/
+├── argocd/
+│   ├── token          # or username + password
+│   ├── username
+│   └── password
+└── gitlab/
+    └── token
+```
+
+Each file holds one value, used exactly as written, so write it without a
+trailing newline (`printf '%s' "$TOKEN" > secrets/gitlab/token`). The files
+don't satisfy the startup check on their own: with an ArgoCD or GitLab `url`
+set, the config must still contain a token or username/password. The Claude
+key isn't read from this directory.
+
+The full order the server uses, first match wins:
+
+- **ArgoCD:** credential files → `ARGOCD_AUTH_TOKEN`, then `ARGOCD_TOKEN` →
+  `argocd.authToken` → `ARGOCD_USERNAME` with `ARGOCD_PASSWORD` →
+  `argocd.username` with `argocd.password`.
+- **GitLab:** credential files → `GITLAB_AUTH_TOKEN`, then `GITLAB_TOKEN` →
+  `gitlab.authToken`.
+- **Claude:** `federation` when its required fields are set → `CLAUDE_API_KEY` →
+  `claude.apiKey`.
+
+A `WARN` line saying the secrets directory isn't available is normal when you
+don't use one.
+
+---
+
+## Command-line flags
+
+| Flag | Default | What it does |
+|---|---|---|
+| `--config` | `config.yaml` | Path to the config file. |
+| `--log-level` | `info` | `debug`, `info`, `warn` or `error`. Any other value means `info`. |
+
+---
+
+## Logging
+
+The server writes one JSON object per line to standard output, with `time`,
+`level`, `logger`, `caller` and `msg`, plus any fields for that event. Every
+HTTP request is logged at `info` with its method, path, status and duration.
+`ERROR` entries include a stack trace.
+
+`debug` adds every outgoing call to Kubernetes, ArgoCD, GitLab and Claude,
+including retries. Use it while you diagnose a problem, not all the time.
+
+---
+
+## Timeouts and retries
+
+| Call | Timeout | Retries |
+|---|---|---|
+| Claude API | 120 seconds per call | None. |
+| ArgoCD, GitLab | 30 seconds per attempt | Up to 3 attempts, 1 then 2 seconds apart, only for failures that can clear by themselves: a connection error or a `5xx` (on read requests), or a `429`. A `401`, `403` or `404` is returned straight away. With an ArgoCD username/password, a `401` opens a new session and tries once more. |
+| Kubernetes | client-go defaults | client-go's own behaviour. |
+
+The server's own `writeTimeout` caps the whole request on top of these.

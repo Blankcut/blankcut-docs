@@ -1,193 +1,106 @@
+# How it works
+
+The server's job is to collect the right facts about your cluster, put them in a
+form Claude can read, and ask Claude your question. This page describes what it
+collects, what Claude receives, and where the limits are.
+
 ---
-title: Model Context Protocol
-description: Learn about the Model Context Protocol (MCP) and how it powers AI-driven analysis of Kubernetes and GitOps workflows.
-date: 2025-03-01
-order: 7
-tags: ['concepts', 'architecture']
+
+## The name
+
+The project takes its name from the Model Context Protocol, the idea of giving a
+model structured context about a system. It doesn't implement the protocol
+itself: there's no JSON-RPC transport and no tool discovery, so an MCP client
+such as Claude Desktop or Claude Code can't connect to it. It's a REST API. To
+use it from an AI assistant, give the assistant a way to make HTTP requests to
+it, such as a script or `curl`.
+
 ---
 
-# Model Context Protocol
+## The pieces
 
-The Model Context Protocol (MCP) is the core technology behind the Kubernetes Claude MCP server. It enables the collection, correlation, and presentation of rich contextual information to Claude AI, allowing for deep analysis and troubleshooting of complex Kubernetes environments.
+| Piece | What it does |
+|---|---|
+| **HTTP API** | Routes requests, checks the API key, and returns JSON. |
+| **Kubernetes client** | Reads the cluster through the Kubernetes API, using your kubeconfig or the Pod's service account. It discovers resource types at request time, so custom resources work too. It only reads. |
+| **ArgoCD client** | Reads Applications through ArgoCD's REST API. In the background, it checks every 60 seconds that its token may read Applications. |
+| **GitLab client** | Reads projects, pipelines, deployments, commits and merge requests through GitLab's REST API. |
+| **Correlator** | Tries to link a Kubernetes object to the ArgoCD Application that manages it, and that Application's repository URL to a GitLab project. |
+| **Rule-based checks** | Turn Warning events, failing CronJobs, and Pod and Deployment status into a list of issues. These don't involve Claude. |
+| **Context builder** | Turns everything collected into a Markdown document for Claude, and trims it if it's too long. |
+| **Claude client** | Makes one call to the Claude Messages API per answer, authenticated with an API key or Workload Identity Federation. |
 
-## What is MCP?
+---
 
-MCP is a framework for providing structured context to large language models (LLMs) like Claude. It solves a fundamental challenge when using AI to analyze complex systems: how to collect and structure all the relevant information about a system so that an AI can understand the complete picture.
+## What happens on a question
 
-In the context of Kubernetes and GitOps:
+Take `POST /api/v1/mcp/resource` about a Deployment:
 
-- **Complete Context**: MCP gathers comprehensive information about resources, their relationships, history, and current state.
-- **Cross-System Correlation**: It correlates information from Kubernetes, ArgoCD, GitLab, and other systems.
-- **Intelligent Filtering**: It filters and prioritizes information to focus on what's most relevant.
-- **Structured Formatting**: It presents information in a way that maximizes Claude's understanding.
+1. **Collect.** The server reads the Deployment's full object and its events. It
+   looks for the ArgoCD Application that manages it and, if it finds one, that
+   Application's sync status and recent syncs. From the Application's
+   repository URL it looks up the GitLab project, then the project's latest
+   pipeline, its latest deployment to the Application's environment, and up to
+   5 commits from the last 24 hours. Any lookup that fails is recorded and
+   skipped rather than failing the request.
+2. **Build the context.** The results become a Markdown document with a section
+   for each source: the object's JSON; for a Deployment, its replica counts and
+   each container's image and resource settings; the ArgoCD Application and its
+   sync history; the GitLab project, pipeline, deployment and commits; the
+   events; and finally an "Errors in Data Collection" section listing what
+   couldn't be collected.
+3. **Trim.** If the document is longer than 100,000 characters, the server keeps
+   the first 60% and the last 40% and marks the cut with
+   `[...Content truncated...]`.
+4. **Ask Claude.** The server sends one request: a fixed system prompt, then
+   the context followed by your `query`. `max_tokens` is your `maxTokens`, and
+   `temperature` is sent only when you've set one.
+5. **Answer.** Claude's text comes back as `analysis`.
 
-## Core Components of MCP
+The system prompt tells Claude it's a Kubernetes GitOps assistant, to rely only
+on what's in the context and say when something isn't there, to look for links
+between problems in different systems (a failed pipeline behind an out-of-sync
+Application, for example), and to suggest fixes and correctly formatted
+`kubectl`, `argocd` or GitLab commands.
 
-The MCP framework consists of several key components:
+### Other endpoints
 
-### 1. Context Collection
+| Endpoint | What goes into the context |
+|---|---|
+| [Namespace analysis](api-overview.md#get-namespacesnamespaceanalysis) | Resource counts per kind; health per kind, naming the unhealthy objects; relationships grouped by type; up to 10 Warning and 5 other recent events; and, for each failing CronJob, its schedule, last run, last success and the last 40 lines of the failed run's log. Claude is asked for an overall assessment, problems, bottlenecks, security concerns and recommendations. |
+| [Troubleshoot](api-overview.md#post-mcptroubleshoot) with a query | The issues the rule-based checks found and their stock recommendations, and a request for specific `kubectl` commands. Not the full object. |
+| [Resource question about a namespace](api-overview.md#post-mcpresource) | Resource counts, relationships, health counts and up to 10 recent events. |
+| [Merge request](api-overview.md#post-mcpmergerequest) | One section per Kubernetes object managed by an ArgoCD Application the merge request touches, built as in step 2. |
 
-The first step of MCP is gathering comprehensive information about the system being analyzed. For Kubernetes environments, this includes:
+---
 
-- **Resource Definitions**: The complete YAML/JSON specifications of resources
-- **Resource Status**: Current runtime status information
-- **Events**: Related Kubernetes events
-- **Logs**: Container logs for relevant pods
-- **Relationships**: Parent-child relationships between resources
-- **History**: Deployment history, changes, and previous states
-- **GitOps Context**: ArgoCD sync status, GitLab commits, pipelines
+## Deterministic and Claude-written parts
 
-### 2. Context Correlation
+Some answers don't depend on Claude at all:
 
-Once data is collected, MCP correlates information across different systems:
+- The `issues` in a namespace analysis and a troubleshoot result come from fixed
+  rules. The same cluster state gives the same issues.
+- `?narrative=false` on the namespace analysis returns only those, without
+  calling Claude, typically within seconds.
+- If Claude can't be reached, the namespace analysis still answers, with a plain
+  summary of the issues in place of the write-up.
 
-- **Resource to Git**: Which Git repository, branch, and files define a resource
-- **Resource to CI/CD**: Which pipelines deployed a resource
-- **Resource to Owners**: Which teams or individuals own a resource
-- **Dependencies**: How resources depend on each other
-- **Change Impact**: How changes in one system affect others
+Claude's `analysis` is generated text. Treat it like advice from a colleague who
+has read the same facts: useful, but check it before acting, especially a
+suggested command.
 
-### 3. Context Formatting
+---
 
-MCP formats the correlated information in a standardized structure:
+## Limits
 
-- **Hierarchical Organization**: Information is organized in a logical hierarchy
-- **Relevance Sorting**: Most important information is presented first
-- **Cross-References**: Clear references between related pieces of information
-- **Compact Representation**: Information is presented efficiently to maximize context window usage
-
-### 4. Context Presentation
-
-Finally, MCP presents the formatted context to Claude for analysis:
-
-- **System Prompt**: Instructs Claude on how to interpret the context
-- **User Query**: Focuses Claude's analysis on specific questions or issues
-- **Analysis Parameters**: Controls the depth, breadth, and style of analysis
-
-## MCP in Action
-
-Here's a simplified view of how MCP works when troubleshooting a Kubernetes deployment:
-
-1. **User Query**: "Why is my deployment not scaling?"
-2. **Context Collection**: MCP gathers information about the deployment, related pods, events, logs, node resources, and GitOps configurations.
-3. **Context Correlation**: MCP connects the deployment to its ArgoCD application and recent GitLab commits.
-4. **Context Formatting**: The information is structured in a hierarchical format that prioritizes scaling-related details.
-5. **Claude Analysis**: Claude analyzes the context and identifies that the deployment can't scale because of resource constraints.
-6. **Response**: The user receives a detailed explanation and recommendations.
-
-## Protocol Architecture
-
-The MCP implementation consists of several key components:
-
-### 1. Collectors
-
-Collectors are responsible for gathering information from different sources:
-
-- **Kubernetes Collector**: Gathers resource definitions, status, and events
-- **ArgoCD Collector**: Gathers application definitions, sync status, and history
-- **GitLab Collector**: Gathers repository information, commits, and pipelines
-- **Log Collector**: Gathers container logs and application logs
-
-### 2. Correlators
-
-Correlators connect information across different systems:
-
-- **GitOps Correlator**: Connects Kubernetes resources to their Git definitions
-- **Deployment Correlator**: Connects resources to their deployment pipelines
-- **Issue Correlator**: Connects observed issues to their potential causes
-- **Resource Correlator**: Connects resources to their related resources
-
-### 3. Context Manager
-
-The Context Manager is responsible for organizing and formatting the context:
-
-- **Context Selection**: Determines what information to include
-- **Context Prioritization**: Prioritizes the most relevant information
-- **Context Formatting**: Formats the information for maximum effectiveness
-- **Context Truncation**: Ensures the context fits within Claude's context window
-
-### 4. Protocol Handler
-
-The Protocol Handler handles the interaction with Claude:
-
-- **Prompt Generation**: Creates effective system and user prompts
-- **Response Processing**: Processes and formats Claude's responses
-- **Follow-up Management**: Handles follow-up queries and clarifications
-
-## Example MCP Context
-
-Here's a simplified example of how MCP formats context for Claude:
-
-```
-# Kubernetes Resource: Deployment/my-app
-Namespace: default
-API Version: apps/v1
-
-## Specification
-Replicas: 5
-Strategy: RollingUpdate
-Selector: app=my-app
-Template:
-  ...truncated for brevity...
-
-## Status
-Available Replicas: 3
-Ready Replicas: 3
-Updated Replicas: 3
-Conditions:
-- Type: Available, Status: True
-- Type: Progressing, Status: True
-
-## Recent Events
-1. [Warning] FailedCreate: pods "my-app-7b9d7f8d9-" failed to fit in any node
-2. [Normal] ScalingReplicaSet: Scaled up replica set my-app-7b9d7f8d9 to 5
-3. [Warning] FailedScheduling: 0/3 nodes are available: insufficient cpu
-
-## ArgoCD Application
-Name: my-app
-Sync Status: Synced
-Health Status: Degraded
-Source: https://github.com/myorg/myrepo.git
-Path: applications/my-app
-Target Revision: main
-
-## Recent GitLab Commits
-1. [2025-03-01T10:15:30Z] 7a8b9c0d: Increase replicas from 3 to 5 (John Smith)
-2. [2025-02-28T15:45:20Z] 1b2c3d4e: Update resource requests (Jane Doe)
-
-## Node Resources
-Total CPU Capacity: 12 cores
-Used CPU: 10.5 cores
-Available CPU: 1.5 cores
-```
-
-This formatted context makes it easy for Claude to understand the complete picture and identify that the deployment can't scale to 5 replicas because of insufficient CPU resources.
-
-## Benefits of MCP
-
-Using the Model Context Protocol provides several key benefits:
-
-1. **Complete Understanding**: Claude gets a holistic view of your environment.
-2. **Deeper Analysis**: With more context, Claude can provide more accurate and insightful analysis.
-3. **Cross-System Correlation**: Issues that span multiple systems are easier to identify.
-4. **Efficient Context Usage**: Structured information maximizes the use of Claude's context window.
-5. **Consistent Analysis**: Standardized context leads to more consistent analysis over time.
-
-## Extending MCP
-
-The Model Context Protocol is designed to be extensible. You can add support for additional systems and information sources:
-
-1. **Custom Collectors**: Implement collectors for your specific systems.
-2. **Custom Correlators**: Create correlators for your organization's workflows.
-3. **Context Templates**: Define custom context templates for your use cases.
-4. **Prompt Templates**: Customize prompts for your specific needs.
-
-For more information on extending MCP, see the Custom Integrations guide.
-
-## Next Steps
-
-Now that you understand the Model Context Protocol, you can:
-
-1. Explore GitOps Integration to learn how MCP connects with ArgoCD and GitLab.
-2. [Try Troubleshooting Resources](troubleshooting-resources.md) to see MCP in action.
-3. [Review the API Reference](api-overview.md) to learn how to interact with the MCP server.
+- **Claude sees only the context.** It has no tools and no access to your
+  cluster, and each request is independent: there's no conversation memory
+  between calls.
+- **Pod logs aren't included,** except the tail of a failed CronJob run. If the
+  cause is in a container's log, put the relevant lines in your question.
+- **Events are short-lived.** Kubernetes keeps them for an hour by default, so
+  what the server can see about a past incident fades quickly.
+- **Size.** The context is capped at 100,000 characters, and a very large object
+  or a busy namespace can be cut in the middle.
+- **Everything collected is sent to the Claude API**, including the full JSON of
+  the object you ask about. Don't ask about Secrets.

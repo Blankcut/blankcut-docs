@@ -1,137 +1,179 @@
+# Quick start
+
+This guide runs the server on your own machine, against the cluster your
+kubeconfig already points at, and walks through the first few calls. It takes
+about five minutes. ArgoCD and GitLab are left out; you can add them later in
+[Configuration](configuration.md).
+
+You need:
+
+- macOS or Linux. There is no Windows binary; on Windows use the
+  [Docker image](installation.md#docker) instead.
+- A working kubeconfig: `kubectl get namespaces` should succeed.
+- A Claude API key.
+- `curl`, and `jq` to pretty-print responses (optional).
+
 ---
-title: Quick Start Guide
-description: Get started with Kubernetes Claude MCP in minutes with this quick start guide.
-date: 2025-03-01
-order: 2
-tags: ['quickstart', 'installation']
----
 
-# Quick Start Guide
+## 1. Download the binary
 
-This guide will help you get Kubernetes Claude MCP up and running quickly. We'll use Docker Compose for a simple local deployment.
-
-## Prerequisites
-
-- Docker and Docker Compose
-- A Kubernetes cluster with kubectl configured
-- ArgoCD instance (optional)
-- GitLab access (optional)
-- Claude API key from Anthropic
-
-## Step 1: Clone the Repository
+Release binaries are published for Linux and macOS on `amd64` and `arm64`.
+This picks the right one and checks it against the published checksums:
 
 ```bash
-git clone https://github.com/blankcut/kubernetes-mcp-server.git
-cd kubernetes-mcp-server
+VERSION=v1.3.0
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')          # linux or darwin
+ARCH=$(uname -m)
+[ "$ARCH" = x86_64 ] && ARCH=amd64
+[ "$ARCH" = aarch64 ] && ARCH=arm64
+BIN="mcp-server-$OS-$ARCH"
+
+curl -fLO "https://github.com/Blankcut/kubernetes-mcp-server/releases/download/$VERSION/$BIN"
+curl -fLO "https://github.com/Blankcut/kubernetes-mcp-server/releases/download/$VERSION/checksums.txt"
+grep " $BIN\$" checksums.txt | shasum -a 256 -c -      # should print "OK"
+chmod +x "$BIN"
 ```
 
-## Step 2: Configure Environment Variables
+---
 
-Create a `.env` file in the project directory:
+## 2. Write a config file
 
-```bash
-# Required
-CLAUDE_API_KEY=your_claude_api_key
-
-# Optional ArgoCD credentials
-ARGOCD_URL=http://argocd.your-domain.com
-ARGOCD_USERNAME=admin
-ARGOCD_PASSWORD=your_password
-# Or use a token instead
-# ARGOCD_AUTH_TOKEN=your_argocd_token
-
-# Optional GitLab credentials
-GITLAB_URL=https://gitlab.com
-GITLAB_AUTH_TOKEN=your_gitlab_token
-
-# Security
-API_KEY=your_chosen_api_key_for_server_access
-```
-
-## Step 3: Create Configuration File
-
-Create a `config.yaml` file:
+Save this as `config.yaml` next to the binary:
 
 ```yaml
 server:
   address: ":8080"
   readTimeout: 30
-  writeTimeout: 60
+  writeTimeout: 300        # seconds; Claude-backed requests can take minutes
   auth:
-    apiKey: "${API_KEY}"
+    apiKey: "${API_KEY}"   # clients must send this key
 
 kubernetes:
-  kubeconfig: ""
-  inCluster: false
-  defaultContext: ""
-  defaultNamespace: "default"
-
-argocd:
-  url: "${ARGOCD_URL}"
-  authToken: "${ARGOCD_AUTH_TOKEN}"
-  username: "${ARGOCD_USERNAME}"
-  password: "${ARGOCD_PASSWORD}"
-  insecure: true
-
-gitlab:
-  url: "${GITLAB_URL}"
-  authToken: "${GITLAB_AUTH_TOKEN}"
-  apiVersion: "v4"
-  projectPath: ""
+  inCluster: false         # use your kubeconfig ($KUBECONFIG or ~/.kube/config)
 
 claude:
   apiKey: "${CLAUDE_API_KEY}"
   baseURL: "https://api.anthropic.com"
-  modelID: "claude-sonnet-4.5-20250514"
+  modelID: "claude-sonnet-5"
   maxTokens: 8192
-  temperature: 0.3
 ```
 
-## Step 4: Start the Server
+`${API_KEY}` and `${CLAUDE_API_KEY}` are filled in from the environment when the
+server reads the file, so the keys never sit in the file itself.
 
-Run the server using Docker Compose:
+---
+
+## 3. Start the server
 
 ```bash
-docker-compose up -d
+export API_KEY=$(openssl rand -hex 32)     # the key your API calls will send
+export CLAUDE_API_KEY=sk-ant-...           # your Claude API key
+
+./"$BIN" --config config.yaml
 ```
 
-## Step 5: Verify the Installation
+The server logs one JSON object per line. It's ready when you see
+`"msg":"Starting HTTP server"`. A few `WARN` lines are normal on a setup like
+this one: no secrets directory, Vault not configured, and no ArgoCD or GitLab
+credentials.
 
-Check if the server is running:
+Leave it running and open a second terminal. Export `API_KEY` there too, with
+the same value.
+
+---
+
+## 4. Check health
+
+The health endpoints don't need the API key:
 
 ```bash
-curl http://localhost:8080/api/v1/health
+curl -s http://localhost:8080/api/v1/health | jq
 ```
 
-You should see a JSON response with the server status and service availability.
+```json
+{
+  "status": "ok",
+  "services": {
+    "argocd": "unavailable",
+    "claude": "assumed available",
+    "gitlab": "unavailable",
+    "kubernetes": "available"
+  },
+  "components": {
+    "argocd": {
+      "status": "unknown",
+      "reachable": false,
+      "authorized": null
+    }
+  }
+}
+```
 
-## Step 6: Make Your First API Call
+`kubernetes: available` is the one that matters here. ArgoCD and GitLab show
+`unavailable` because they aren't configured. The server never calls Claude for
+a health check, so `claude` always reads `assumed available`.
 
-Let's query a pod in your Kubernetes cluster:
+---
+
+## 5. Read from the cluster
+
+Every other endpoint needs the key, in an `X-API-Key` header or as
+`Authorization: Bearer <key>`:
 
 ```bash
-curl -X POST \
+curl -s -H "X-API-Key: $API_KEY" http://localhost:8080/api/v1/namespaces | jq
+```
+
+```json
+{
+  "namespaces": ["default", "kube-node-lease", "kube-public", "kube-system"]
+}
+```
+
+---
+
+## 6. Analyze a namespace
+
+Start with the fast, findings-only version. `?narrative=false` skips Claude and
+returns in seconds:
+
+```bash
+curl -s -H "X-API-Key: $API_KEY" \
+  "http://localhost:8080/api/v1/namespaces/default/analysis?narrative=false" | jq
+```
+
+The response lists resource counts, health per kind, and `issues`: Warning
+events, and CronJobs whose last run failed. Drop `?narrative=false` and the same
+request also asks Claude for a written analysis, which takes longer (often tens
+of seconds).
+
+---
+
+## 7. Ask Claude about a resource
+
+Pick a Deployment that exists in your cluster:
+
+```bash
+curl -s -X POST http://localhost:8080/api/v1/mcp/resource \
+  -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your_chosen_api_key" \
   -d '{
-    "action": "queryResource",
-    "resource": "pod",
-    "name": "your-pod-name",
-    "namespace": "your-namespace",
-    "query": "What is the status of this pod and are there any issues?"
-  }' \
-  http://localhost:8080/api/v1/mcp/resource
+    "resource": "Deployment",
+    "name": "my-app",
+    "namespace": "default",
+    "query": "Is this deployment healthy? If not, what should I check first?"
+  }' | jq -r .analysis
 ```
 
-The server will analyze the pod and return Claude's analysis, highlighting any issues and providing recommendations.
+Use the kind as Kubernetes spells it (`Deployment`, `Pod`). A lowercase kind
+still finds the object, but the event lookup then matches nothing, so Claude
+sees no events.
 
-## Next Steps
+---
 
-Now that you have Kubernetes Claude MCP running, you can:
+## Next steps
 
-1. [Configure the server](configuration.md) for your specific environment
-2. [Explore the API](api-overview.md) to learn about all available endpoints
-3. Check out the [Troubleshooting Resources](troubleshooting-resources.md) guide for common use cases
-4. Learn about GitOps Integration with ArgoCD and GitLab
-
-For a more detailed setup and configuration, see the [Installation Guide](installation.md).
+- Put the server in your cluster with the [Helm chart](installation.md#helm-chart).
+- Add ArgoCD and GitLab in [Configuration](configuration.md).
+- Learn what each endpoint returns in the [API reference](api-overview.md).
+- Use the [troubleshooting guide](troubleshooting-resources.md) to dig into a failing workload.
