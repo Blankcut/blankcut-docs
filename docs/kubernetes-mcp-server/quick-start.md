@@ -21,7 +21,7 @@ Release binaries are published for Linux and macOS on `amd64` and `arm64`.
 This picks the right one and checks it against the published checksums:
 
 ```bash
-VERSION=v1.3.0
+VERSION=v1.4.0
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')          # linux or darwin
 ARCH=$(uname -m)
 [ "$ARCH" = x86_64 ] && ARCH=amd64
@@ -74,8 +74,7 @@ export CLAUDE_API_KEY=sk-ant-...           # your Claude API key
 
 The server logs one JSON object per line. It's ready when you see
 `"msg":"Starting HTTP server"`. A few `WARN` lines are normal on a setup like
-this one: no secrets directory, Vault not configured, and no ArgoCD or GitLab
-credentials.
+this one: no secrets directory, and no ArgoCD or GitLab credentials.
 
 Leave it running and open a second terminal. Export `API_KEY` there too, with
 the same value.

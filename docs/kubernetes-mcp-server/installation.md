@@ -20,95 +20,88 @@ you configure them. It listens on plain HTTP.
 
 The chart lives in the repository at `helm/kubernetes-mcp-server`. It isn't
 published to a Helm repository, so install it from a checkout of the release
-tag:
+tag. The chart's version matches the release, and by default it runs that
+release's image.
 
 ```bash
 git clone https://github.com/Blankcut/kubernetes-mcp-server.git
 cd kubernetes-mcp-server
-git checkout v1.3.0
+git checkout v1.4.0
 ```
 
-### 1. Write a values file
+### 1. Install
 
-Save this as `my-values.yaml` and adjust the ArgoCD and GitLab URLs:
-
-```yaml
-image:
-  tag: "1.3.0"            # pin the release; see "Chart defaults to change" below
-
-config:
-  server:
-    writeTimeout: 300     # seconds; Claude-backed requests can take minutes
-  argocd:
-    url: "https://argocd.example.com"   # "" turns ArgoCD off
-  gitlab:
-    url: ""                             # e.g. "https://gitlab.com"; "" turns GitLab off
-  claude:
-    modelID: "claude-sonnet-5"
-    temperature: 0        # 0 means "don't send it"; Claude Sonnet 5 rejects any explicit value
-
-rbac:
-  rules:
-    - apiGroups: [""]
-      resources: ["pods", "services", "endpoints", "namespaces", "events", "configmaps", "persistentvolumeclaims"]
-      verbs: ["get", "list", "watch"]
-    - apiGroups: [""]
-      resources: ["pods/log"]          # lets namespace analysis read a failed CronJob run's log
-      verbs: ["get"]
-    - apiGroups: ["apps"]
-      resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
-      verbs: ["get", "list", "watch"]
-    - apiGroups: ["batch"]
-      resources: ["jobs", "cronjobs"]
-      verbs: ["get", "list", "watch"]
-    - apiGroups: ["networking.k8s.io"]
-      resources: ["ingresses", "networkpolicies"]
-      verbs: ["get", "list", "watch"]
-    - apiGroups: ["argoproj.io"]
-      resources: ["applications", "appprojects"]
-      verbs: ["get", "list", "watch"]
-```
-
-The `rbac.rules` list replaces the chart's default list. Compared with the
-default it adds `pods/log` and `persistentvolumeclaims`, and leaves out
-`secrets`. Without `pods/log`, a failing CronJob is still reported but its log
-is replaced by a "could not read the run's log" note. Without
-`persistentvolumeclaims`, troubleshooting a Pod that mounts a volume reports
-"PVC Not Found" for a claim that exists. Secrets are left out on purpose: the
-API returns whatever the service account can read.
-
-### 2. Supply the secrets
-
-The chart creates a Secret from four values: `secrets.apiKey` (the key clients
-send), `secrets.claudeApiKey`, `secrets.argocdToken` and `secrets.gitlabToken`.
-Pass them at install time:
+The defaults run the server against the cluster it's installed in, with ArgoCD
+and GitLab off. Two values are required: the key clients will send, and your
+Claude API key.
 
 ```bash
 helm install kubernetes-mcp-server ./helm/kubernetes-mcp-server \
   --namespace mcp-system --create-namespace \
-  -f my-values.yaml \
   --set secrets.apiKey="$API_KEY" \
-  --set secrets.claudeApiKey="$CLAUDE_API_KEY" \
-  --set secrets.argocdToken="$ARGOCD_TOKEN"
+  --set secrets.claudeApiKey="$CLAUDE_API_KEY"
 ```
 
-To manage the Secret yourself instead, create it first and add
-`--set secrets.create=false`. It must be named after the release (here
-`kubernetes-mcp-server`) and must contain all four keys, even the ones you
-don't use; the Pod won't start with a key missing.
+To add ArgoCD or GitLab, or change the model, write a values file and pass it
+with `-f`:
+
+```yaml
+config:
+  argocd:
+    url: "https://argocd.example.com"   # with secrets.argocdToken
+  gitlab:
+    url: "https://gitlab.com"           # with secrets.gitlabToken
+  claude:
+    modelID: "claude-sonnet-5"
+    temperature: 0                      # 0 isn't sent; Claude Sonnet 5 rejects any explicit value
+```
+
+```bash
+helm install kubernetes-mcp-server ./helm/kubernetes-mcp-server \
+  --namespace mcp-system --create-namespace -f my-values.yaml \
+  --set secrets.apiKey="$API_KEY" \
+  --set secrets.claudeApiKey="$CLAUDE_API_KEY" \
+  --set secrets.argocdToken="$ARGOCD_TOKEN" \
+  --set secrets.gitlabToken="$GITLAB_TOKEN"
+```
+
+Setting an ArgoCD or GitLab URL without its token stops the server at startup
+(`ArgoCD requires either authToken or username/password`). With the chart,
+ArgoCD authenticates with a token.
+
+### 2. Or manage the Secret yourself
+
+Create it first, named after the release, and add `--set secrets.create=false`.
+It needs `api-key`, plus whichever of `argocd-token`, `gitlab-token` and
+`claude-api-key` you use; a key you leave out reads as unset.
 
 ```bash
 kubectl -n mcp-system create secret generic kubernetes-mcp-server \
   --from-literal=api-key="$API_KEY" \
-  --from-literal=claude-api-key="$CLAUDE_API_KEY" \
-  --from-literal=argocd-token="$ARGOCD_TOKEN" \
-  --from-literal=gitlab-token=""
+  --from-literal=claude-api-key="$CLAUDE_API_KEY"
 ```
 
-With the chart, ArgoCD authenticates with a token only. If `config.argocd.url`
-is set and the token is empty, the server refuses to start.
+### 3. Or authenticate to Claude without a key
 
-### 3. Check it's running
+With [Workload Identity Federation](configuration.md#workload-identity-federation),
+the server exchanges a short-lived, projected service-account token for a Claude
+access token and holds no API key. Set up the issuer, service account and
+federation rule in the Claude Console, then:
+
+```yaml
+federation:
+  enabled: true
+  federationRuleID: "fdrl_..."
+  organizationID: "00000000-0000-0000-0000-000000000000"
+  serviceAccountID: "svac_..."
+  # workspaceID: "wrkspc_..."   # only for a rule that covers several workspaces
+```
+
+The chart projects the token (audience `https://api.anthropic.com`, 600-second
+lifetime) and sets the `ANTHROPIC_*` variables; leave `secrets.claudeApiKey`
+empty.
+
+### 4. Check it's running
 
 ```bash
 kubectl -n mcp-system rollout status deployment/kubernetes-mcp-server
@@ -126,48 +119,64 @@ If the Pod restarts instead, read its log:
 problem is the last line, as `"msg":"Invalid configuration"` with the reason.
 See [Troubleshooting](troubleshooting-resources.md#the-server-wont-start).
 
-### Chart defaults to change
+### What the server can read
 
-| Default | Why to change it |
-|---|---|
-| `image.tag: ""` | An empty tag falls back to the chart's `appVersion`, which is `1.0.3`, an older image without the CronJob checks, the ArgoCD authorization probe or Workload Identity Federation. Set `image.tag: "1.3.0"`. |
-| `config.gitlab.url: "https://gitlab.com"` | With a GitLab URL and no `secrets.gitlabToken`, the server refuses to start. Set a token, or set the URL to `""`. |
-| `config.claude.temperature: 0.3` | Fine for the chart's default model, `claude-sonnet-4-6`. If you switch to `claude-sonnet-5`, set it to `0` so it isn't sent. |
-| `config.server.writeTimeout: 60` | A namespace analysis or a Claude question can take longer than 60 seconds. When it does, the connection closes with no response. `300` covers every endpoint. |
-| `rbac.rules` | Grants read on Secrets cluster-wide and lacks `pods/log`. See the values file above. |
+The API returns whatever the server's role can read, so the role is the real
+boundary. The default grants `get`, `list` and `watch` on Pods, Services,
+Endpoints, Namespaces, Events, ConfigMaps and PersistentVolumeClaims;
+Deployments, ReplicaSets, StatefulSets and DaemonSets; Jobs and CronJobs;
+Ingresses and NetworkPolicies; and ArgoCD Applications and AppProjects, plus
+`get` on `pods/log` (for the end of a failed CronJob run's log).
+
+It deliberately leaves out **Secrets**. Granting them would serve their contents
+to anyone holding the API key, and send them to Claude in any question about
+one. Setting `rbac.rules` replaces the whole list, so copy the default from
+`values.yaml` and change it rather than starting from scratch.
 
 ### Chart values
 
 | Value | Default | What it does |
 |---|---|---|
 | `image.repository` | `blankcut/kubernetes-mcp-server` | Image to run. |
-| `image.tag` | `""` (chart `appVersion`, `1.0.3`) | Image tag. |
+| `image.tag` | `""` (the chart's `appVersion`, the release it ships with) | Image tag. |
 | `image.pullPolicy` | `IfNotPresent` | Pull policy. |
 | `replicaCount` | `1` | Replicas when autoscaling is off. Replicas share nothing, so you can run several. |
-| `config.server.*` | `address: ":8080"`, `readTimeout: 30`, `writeTimeout: 60` | Rendered into the config file. |
+| `config.server.*` | `address: ":8080"`, `readTimeout: 30`, `writeTimeout: 300` | Rendered into the config file. Claude-backed requests can take minutes, so don't lower `writeTimeout` much. |
 | `config.kubernetes.*` | `inCluster: true` | Rendered into the config file. Keep `inCluster: true` in a Pod. |
-| `config.argocd.url`, `config.argocd.insecure` | `""`, `false` | Rendered into the config file. The token comes from the Secret. |
-| `config.gitlab.url`, `config.gitlab.apiVersion` | `https://gitlab.com`, `v4` | Rendered into the config file. The token comes from the Secret. |
-| `config.claude.baseURL`, `modelID`, `maxTokens`, `temperature` | `https://api.anthropic.com`, `claude-sonnet-4-6`, `8192`, `0.3` | Rendered into the config file. The API key comes from the Secret. |
-| `secrets.create` | `true` | Create the Secret from the four `secrets.*` values. |
-| `secrets.apiKey`, `claudeApiKey`, `argocdToken`, `gitlabToken` | `""` | Secret values, exposed to the server as `API_KEY`, `CLAUDE_API_KEY`, `ARGOCD_TOKEN` and `GITLAB_TOKEN`. |
+| `config.argocd.url`, `insecure` | `""`, `false` | `""` turns ArgoCD off. The token comes from the Secret. |
+| `config.gitlab.url`, `apiVersion` | `""`, `v4` | `""` turns GitLab off. The token comes from the Secret. |
+| `config.claude.baseURL`, `modelID`, `maxTokens`, `temperature` | `https://api.anthropic.com`, `claude-sonnet-4-6`, `8192`, `0.3` | Rendered into the config file. Set `temperature: 0` with `claude-sonnet-5`. |
+| `secrets.create` | `true` | Create the Secret from the `secrets.*` values. |
+| `secrets.apiKey`, `claudeApiKey`, `argocdToken`, `gitlabToken` | `""` | Secret values, exposed to the server as `API_KEY`, `CLAUDE_API_KEY`, `ARGOCD_TOKEN` and `GITLAB_TOKEN`. `apiKey` is required; the install notes warn when it's empty. |
+| `federation.enabled`, `federationRuleID`, `organizationID`, `serviceAccountID`, `workspaceID` | `false`, `""` | Workload Identity Federation. The rule and organization IDs are required when enabled. |
+| `federation.identityTokenFile`, `audience`, `expirationSeconds` | `/var/run/secrets/anthropic.com/token`, `https://api.anthropic.com`, `600` | Where and how the identity token is projected. Keep the 600-second lifetime: tokens are single-use, and a longer one makes renewals replay a spent token. |
+| `extraEnv`, `extraVolumes`, `extraVolumeMounts` | `[]` | Added to the Pod as-is, for example `LOG_LEVEL`. |
 | `rbac.create` | `true` | Create the role and binding. |
 | `rbac.clusterRole` | `true` | `true`: a ClusterRole, so the server reads every namespace. `false`: a Role in the release namespace only, and listing namespaces then fails. |
-| `rbac.rules` | read on core, apps, batch, networking and ArgoCD resources, including Secrets | The role's rules. Setting it replaces the whole list. |
+| `rbac.rules` | read-only, no Secrets (see above) | The role's rules. Setting it replaces the whole list. |
 | `serviceAccount.create`, `name`, `annotations` | `true`, `""`, `{}` | The service account the Pod runs as. |
 | `service.type`, `service.port` | `ClusterIP`, `8080` | The Service in front of the Pod. |
 | `ingress.enabled`, `className`, `hosts`, `tls`, `annotations` | `false` | Optional Ingress. The server speaks plain HTTP, so terminate TLS here. |
 | `autoscaling.enabled`, `minReplicas`, `maxReplicas`, `targetCPUUtilizationPercentage`, `targetMemoryUtilizationPercentage` | `false`, `1`, `10`, `80`, `80` | Optional HorizontalPodAutoscaler. |
 | `resources` | requests `250m`/`256Mi`, limits `500m`/`512Mi` | Container resources. |
 | `livenessProbe`, `readinessProbe` | `/api/v1/health/live`, `/api/v1/health/ready` | Probes. See [health endpoints](api-overview.md#health). |
-| `podSecurityContext`, `securityContext` | non-root (UID 1000), read-only root filesystem, all capabilities dropped | Pod and container security settings. `/tmp` is a writable `emptyDir`. |
+| `podSecurityContext`, `securityContext` | non-root (UID/GID 1001, the image's user), read-only root filesystem, all capabilities dropped | Pod and container security settings. `/tmp` is a writable `emptyDir`. |
 | `nodeSelector`, `tolerations`, `affinity`, `podAnnotations`, `imagePullSecrets`, `nameOverride`, `fullnameOverride` | empty | Standard scheduling and naming values. |
 
-The chart doesn't expose the `claude.federation` settings, a way to add
-environment variables or volumes, or server flags such as `--log-level`. To use
-[Workload Identity Federation](configuration.md#workload-identity-federation)
-with it, you need to add the token volume and variables yourself, for example
-with a Helm post-renderer.
+### Upgrading from chart 1.0.3
+
+Chart 1.4.0 changed several defaults. Before `helm upgrade`, check:
+
+- **The image moves to 1.4.0** unless you pinned `image.tag`. Chart 1.0.3 ran
+  image 1.0.3 by default, whichever release you checked out.
+- **The role no longer reads Secrets.** If something relied on
+  `GET /api/v1/resources/secret`, add the rule back explicitly in `rbac.rules`.
+- **GitLab is off by default.** If you used GitLab without setting
+  `config.gitlab.url`, set it to `https://gitlab.com` now.
+- **`writeTimeout` is 300 seconds** (was 60).
+- **The Pod runs as UID/GID 1001** (was 1000), the image's own user.
+- The unused `config.*.authToken`/`apiKey` values and `config.gitlab.projectPath`
+  are gone. Credentials always came from the Secret.
 
 ### Without Helm in the cluster
 
@@ -188,7 +197,7 @@ credential ends up in it. Create the Secret as shown in step 2.
 ## Docker
 
 Images are on Docker Hub as `blankcut/kubernetes-mcp-server`, for `linux/amd64`
-and `linux/arm64`. Each release is tagged with its full version (`1.3.0`), its
+and `linux/arm64`. Each release is tagged with its full version (`1.4.0`), its
 minor and major versions (`1.3`, `1`), `latest`, and `sha-<commit>`. Pin the
 full version.
 
@@ -202,7 +211,7 @@ docker run --rm -p 8080:8080 \
   -e KUBECONFIG=/kube/config \
   -v "$HOME/.kube/config:/kube/config:ro" \
   -v "$PWD/config.yaml:/app/config.yaml:ro" \
-  blankcut/kubernetes-mcp-server:1.3.0
+  blankcut/kubernetes-mcp-server:1.4.0
 ```
 
 `-e API_KEY -e CLAUDE_API_KEY` copy those variables from your shell, and the
@@ -223,7 +232,7 @@ Things that trip up a kubeconfig inside a container:
 To pass a flag, give the full command after the image name:
 
 ```bash
-docker run ... blankcut/kubernetes-mcp-server:1.3.0 \
+docker run ... blankcut/kubernetes-mcp-server:1.4.0 \
   ./mcp-server --config /app/config.yaml --log-level debug
 ```
 
@@ -284,10 +293,9 @@ the same directory.
 - **Terminate TLS in front of it.** The server only speaks HTTP. Keep it on a
   `ClusterIP` Service and reach it with `kubectl port-forward`, or put it behind
   an Ingress or load balancer that terminates TLS.
-- **Call it from a backend, not a web page.** Responses carry
-  `Access-Control-Allow-Origin: *`, but browsers can't call the API from
-  another origin anyway (see [Authentication](api-overview.md#authentication)),
-  and a key embedded in a page is a published key.
+- **Call it from a backend, not a web page.** The API allows cross-origin
+  requests (see [Authentication](api-overview.md#authentication)), but a key
+  embedded in a page is a published key.
 - **The API returns what the service account can read.** If the role can read
   Secrets, `GET /api/v1/resources/secret` returns their data. Grant only what
   you want served.

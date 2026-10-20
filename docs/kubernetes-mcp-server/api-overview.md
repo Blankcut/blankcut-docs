@@ -57,13 +57,18 @@ returns `401` with one of these bodies:
 | `Invalid authorization format` | `Authorization` isn't exactly `Bearer <key>`. |
 | `Invalid API key` | The key doesn't match. |
 
-If the server has no key configured, every request fails this check.
+If the server has no key configured, every request fails this check, whatever
+it sends. Keys are compared in constant time.
 
-Call the API from a server-side client. Responses carry
-`Access-Control-Allow-Origin: *`, but the server doesn't answer CORS preflight
-(`OPTIONS`) requests: they get a `404` or `405`, with no CORS headers. A browser
-on another origin sends a preflight before any request with an API-key header,
-so it can't call the API.
+**Cross-origin requests.** Every response carries
+`Access-Control-Allow-Origin: *`, and CORS preflight (`OPTIONS`) requests are
+answered with `204` and allow the `Content-Type`, `Authorization` and
+`X-API-Key` headers, so a browser on any origin can call the API. That's safe
+because the key is a header the page has to set itself, not a cookie another
+site could ride on. Still, a key embedded in a web page is a published key:
+call the API from a backend unless the page's users should hold the key.
+Before v1.4.0, preflights got a `404` or `405` and no browser could call the
+API.
 
 ---
 
@@ -573,7 +578,7 @@ All of them take a JSON body built from these fields:
 ```
 
 `analysis` is Claude's answer, usually in Markdown. `context` is always present
-and always empty in v1.3.0; ignore it. Some endpoints add a field, noted below.
+and always empty; ignore it. Some endpoints add a field, noted below.
 
 ### `POST /mcp/resource`
 
@@ -709,7 +714,7 @@ Prefer the specific endpoints.
 
 ### `POST /mcp/commit`
 
-Registered, but not implemented in v1.3.0. With `projectId` and `commitSha` set
+Registered, but not implemented. With `projectId` and `commitSha` set
 it returns `500` with `details` `unsupported action: queryCommit`; without them,
 `400`.
 

@@ -7,7 +7,7 @@ it to the Claude API, and returns Claude's analysis. Everything is exposed as a
 plain **REST API** over HTTP.
 
 - Source: [github.com/Blankcut/kubernetes-mcp-server](https://github.com/Blankcut/kubernetes-mcp-server) (MIT licence)
-- Current release: **v1.3.0**
+- Current release: **v1.4.0**
 - Docker image: [`blankcut/kubernetes-mcp-server`](https://hub.docker.com/r/blankcut/kubernetes-mcp-server) (`linux/amd64`, `linux/arm64`)
 
 !!! note "About the name"

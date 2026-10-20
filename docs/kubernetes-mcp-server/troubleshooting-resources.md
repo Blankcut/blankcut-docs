@@ -54,7 +54,7 @@ gets includes the last 40. When there's no log, the description says why:
 |---|---|
 | `no failed run is still recorded (failedJobsHistoryLimit may be 0)` | The CronJob doesn't keep failed Jobs, so there's nothing to read. Raise `failedJobsHistoryLimit`. |
 | `the failed run's pod has already been cleaned up (ttlSecondsAfterFinished), so its log is gone` | The Job is still there but its Pod was deleted. Raise the Job's `ttlSecondsAfterFinished`, or ship logs somewhere that keeps them. |
-| `could not read the run's log: ...` | The server isn't allowed to read Pod logs. Give its role `get` on `pods/log` (see [Installation](installation.md#1-write-a-values-file)). |
+| `could not read the run's log: ...` | The server isn't allowed to read Pod logs. Give its role `get` on `pods/log` (the Helm chart does from 1.4.0; see [Installation](installation.md#what-the-server-can-read)). |
 
 A CronJob counts as failing when its last scheduled run is newer than its last
 success (or it has never succeeded), it isn't suspended, and no run is in
@@ -127,7 +127,7 @@ The last log line names the problem. Configuration errors appear as
 | `claude temperature must be between 0.0 and 1.0` | Fix `claude.temperature`, or remove it. |
 | `cannot specify both inCluster=true and kubeconfig path` | Remove `kubeconfig`, or unset `KUBECONFIG` in the server's environment, or set `inCluster: false`. |
 | `ArgoCD requires either authToken or username/password` | `argocd.url` is set without credentials. Add a token, or clear the URL. |
-| `GitLab auth token is required when GitLab URL is provided` | `gitlab.url` is set without a token. The Helm chart sets `https://gitlab.com` by default; set `config.gitlab.url=""` or provide `secrets.gitlabToken`. |
+| `GitLab auth token is required when GitLab URL is provided` | `gitlab.url` is set without a token. Provide one (`secrets.gitlabToken` with the Helm chart), or clear the URL. Chart versions before 1.4.0 set `https://gitlab.com` by default. |
 
 Other fatal errors:
 
@@ -155,7 +155,7 @@ Check `components.argocd` in [`/api/v1/health`](api-overview.md#get-health):
 | `status` | What to do |
 |---|---|
 | `denied` | The token works but its account can't `get` Applications. Grant it in ArgoCD's `argocd-rbac-cm`, for example `g, <account>, role:readonly` in `policy.csv`. |
-| `unauthenticated` | ArgoCD rejected the token: it was revoked or has expired, or its account is disabled. Generate a new token and restart the server. Also see the Vault note below. |
+| `unauthenticated` | ArgoCD rejected the token: it was revoked or has expired, or its account is disabled. Generate a new token and restart the server. |
 | `unavailable` | The server can't reach ArgoCD. Check `argocd.url`, network access, and TLS (`insecure` for a test instance with a self-signed certificate). |
 | `unknown` | ArgoCD isn't configured, or the first check hasn't finished. It runs at startup and every 60 seconds. |
 
@@ -165,13 +165,13 @@ in service. A list that's empty with `status: authorized` really is empty.
 
 ### ArgoCD and GitLab calls all fail with `401`
 
-If `VAULT_ADDR` and `VAULT_TOKEN` are both set in the server's environment,
-v1.3.0 replaces the ArgoCD and GitLab credentials with placeholder values. The
-startup log then says `Loaded ArgoCD credentials from vault`. Vault isn't
-supported; unset both variables and restart.
+Check that the token is current, and that a value read from a file in
+[`SECRETS_DIR`](configuration.md#credential-files) has no trailing newline.
 
-Otherwise, check that the token is current, and that a value read from a file
-in [`SECRETS_DIR`](configuration.md#credential-files) has no trailing newline.
+On v1.3.0 and earlier, also check that `VAULT_ADDR` and `VAULT_TOKEN` aren't
+both set: those releases then replaced the ArgoCD and GitLab credentials with
+placeholder values (the startup log says `Loaded ArgoCD credentials from vault`).
+v1.4.0 removed that code and ignores both variables.
 
 ### GitLab shows `available` but project calls fail
 
@@ -221,10 +221,11 @@ remove it.
 
 ### Getting more detail
 
-Start the server with `--log-level debug`. It then logs every call it makes to
-Kubernetes, ArgoCD, GitLab and Claude, including retries. The `LOG_LEVEL`
-environment variable has no effect; only the flag sets the level.
+Start the server with `--log-level debug`, or set `LOG_LEVEL=debug` in its
+environment (with the Helm chart, through `extraEnv`). It then logs every call it
+makes to Kubernetes, ArgoCD, GitLab and Claude, including retries. An explicit
+flag wins over the variable. Before v1.4.0 the variable had no effect.
 
-A few `WARN` lines at startup are normal: no secrets directory, Vault not
-configured, and missing credentials or failed connection checks for any
-integration you haven't configured.
+A few `WARN` lines at startup are normal: no secrets directory, and missing
+credentials or failed connection checks for any integration you haven't
+configured.

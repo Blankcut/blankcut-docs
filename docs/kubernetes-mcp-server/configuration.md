@@ -94,7 +94,7 @@ integration.
 | `inCluster` | no | `true`: use the Pod's service account. Use it when the server runs in the cluster it inspects. Can't be combined with a kubeconfig path, and that includes `KUBECONFIG` being set. |
 | `kubeconfig` | no | Path to one kubeconfig file. Empty: `~/.kube/config`. Overridden by `KUBECONFIG`, which must also be a single path; a colon-separated list isn't merged. Ignored when `inCluster` is `true`. |
 | `defaultContext` | no | Context to use from the kubeconfig. Empty: the file's current context. |
-| `defaultNamespace` | no | Accepted, but no endpoint uses it in v1.3.0. Pass the namespace on each request. |
+| `defaultNamespace` | no | Accepted, but no endpoint uses it. Pass the namespace on each request. |
 
 If the server can't build a Kubernetes client (a missing kubeconfig, an unknown
 context, no service account), it exits. If it builds one but can't reach the
@@ -252,8 +252,8 @@ Two things to get right:
   lives longer than the Claude access token, the next renewal presents a token
   that was already spent and fails. `600` is the shortest Kubernetes allows.
 
-The Helm chart has no settings for this yet; see
-[Installation](installation.md#chart-values).
+The Helm chart does this for you with its `federation.*` values; see
+[Installation](installation.md#3-or-authenticate-to-claude-without-a-key).
 
 ---
 
@@ -284,8 +284,7 @@ These are also read:
 | `ARGOCD_TOKEN` | Used as the ArgoCD token when `ARGOCD_AUTH_TOKEN` isn't set. On its own it doesn't satisfy the startup check, so reference it in the file as well (`authToken: "${ARGOCD_TOKEN}"`), as the Helm chart does. |
 | `GITLAB_TOKEN` | The same, for GitLab. |
 | `SECRETS_DIR` | Directory of [credential files](#credential-files). Default `./secrets`. |
-| `VAULT_ADDR`, `VAULT_TOKEN` | Vault isn't supported. **Unset both.** When both are set, v1.3.0 replaces the ArgoCD and GitLab credentials with placeholder values, and every call to those systems fails with `401`. |
-| `LOG_LEVEL` | Has no effect: the `--log-level` flag always sets the level. |
+| `LOG_LEVEL` | The default for `--log-level` (v1.4.0 and later; in earlier releases the flag always overrode it). |
 
 ---
 
@@ -331,7 +330,7 @@ don't use one.
 | Flag | Default | What it does |
 |---|---|---|
 | `--config` | `config.yaml` | Path to the config file. |
-| `--log-level` | `info` | `debug`, `info`, `warn` or `error`. Any other value means `info`. |
+| `--log-level` | `$LOG_LEVEL`, else `info` | `debug`, `info`, `warn` or `error`. Any other value means `info`. |
 
 ---
 
