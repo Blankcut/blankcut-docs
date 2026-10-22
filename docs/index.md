@@ -22,7 +22,7 @@ takes care of <span id="bc-rotator" class="bc-rotator">builds and deploys</span>
 
 <div class="grid cards" markdown>
 
--   :material-console-line:{ .bc-card-icon } **[Meerkat CLI](cli/index.md)**
+-   :material-console-line:{ .bc-card-icon } **[BlankCut CLI](cli/index.md)**
 
     ---
 

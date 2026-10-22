@@ -13,7 +13,7 @@ deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to
 ```
 docs/
   index.md          # hub landing page
-  cli/              # Meerkat CLI (`blankcut`) docs
+  cli/              # BlankCut CLI (`blankcut`) docs
   <tool>/           # one folder per additional tool (add a section in mkdocs.yml)
 ```
 
