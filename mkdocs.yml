@@ -1,7 +1,7 @@
 site_name: Meerkat docs
 site_description: >-
   Documentation for Meerkat by Blank Cut, the platform that builds, deploys and
-  runs your apps, and for the BlankCut CLI (blankcut) that drives it.
+  runs your apps, and for the Blank Cut CLI (blankcut) that drives it.
 site_url: https://docs.blankcut.com
 # Rendered in the footer bar on every page (HTML is allowed here).
 copyright: >-
@@ -77,7 +77,7 @@ extra_javascript:
 
 nav:
   - Home: index.md
-  - BlankCut CLI:
+  - Blank Cut CLI:
       - cli/index.md
       - Deploy an app: cli/deploy.md
       - Read your environment: cli/context.md
