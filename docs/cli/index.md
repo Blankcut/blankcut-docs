@@ -1,6 +1,6 @@
-# Meerkat CLI — overview & setup
+# BlankCut CLI — overview & setup
 
-`blankcut` is the Meerkat CLI: the command-line tool that connects a repository
+`blankcut` is the BlankCut CLI: the command-line tool that connects a repository
 to Meerkat. With it you connect a repo or create a new project, deploy it, read
 the environment it actually runs in, manage its secrets, files, scheduled jobs
 and domains, see what its image scan found, and check live status.
