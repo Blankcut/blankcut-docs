@@ -40,7 +40,8 @@ It reports two views:
   blocked from being pushed.
 - **Running now:** the scheduled re-scan of the images actually serving traffic.
   A finding here that isn't in the last build is a vulnerability published since
-  the image was built; a rebuild picks up its fix.
+  the image was built; a rebuild picks up its fix (for an OS package, only if
+  your `Dockerfile` refreshes them on every build, as in the tip below).
 
 Findings are grouped by the package upgrade that fixes them, and each package
 names **one version to upgrade to**: the lowest fix on the release line you're
@@ -92,6 +93,20 @@ Work most-severe first.
     needed. If your build reports OS-package findings you didn't introduce,
     compare your `Dockerfile` with a fresh `blankcut init` in a scratch
     directory.
+
+    Since v0.23.5 the scaffolded `Dockerfile` also has this line just before
+    its `apk upgrade`:
+
+    ```dockerfile
+    ADD https://dl-cdn.alpinelinux.org/alpine/latest-stable/main/aarch64/APKINDEX.tar.gz /tmp/apkindex.tar.gz
+    ```
+
+    The build cache reuses a step whose text hasn't changed. Without that line,
+    `apk upgrade` runs on your first build and every later build reuses its
+    result, so fixes Alpine publishes afterwards never reach your image. With
+    it, the step runs again whenever Alpine publishes. If an Alpine finding
+    with a published `fixed` version survives a rebuild, add the line before
+    your own `apk upgrade`.
 
 ---
 
