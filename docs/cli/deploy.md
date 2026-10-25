@@ -76,9 +76,10 @@ pull request with the fixes and watches the build that follows.
     `--name` sets the app name (the directory name by default).
 
     `init` registers nothing and deploys nothing, and there's no build workflow
-    until a promote generates one. To deploy a repo scaffolded this way, run
-    `blankcut promote --repo <GITHUB_URL>`, which registers the app and deploys
-    it in one step. For most repos, `onboard` is simpler.
+    until a promote generates one. To deploy a repo scaffolded this way, push it
+    to GitHub and run `blankcut onboard` in it to register the app, then
+    `blankcut promote --app <name>`. Until it is onboarded, `promote` answers
+    "not authorized" for it.
 
 ---
 
