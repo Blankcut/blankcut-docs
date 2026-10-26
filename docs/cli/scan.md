@@ -108,6 +108,19 @@ Work most-severe first.
     with a published `fixed` version survives a rebuild, add the line before
     your own `apk upgrade`.
 
+    Since v0.23.7 a scaffolded static site installs its file server, `serve`,
+    with `compression` 1.8.2. `serve` itself pins 1.8.1, which has a HIGH
+    finding, and a global `npm install -g serve@14` can't change that pin. If
+    your scan lists `compression 1.8.1` and your `Dockerfile` has
+    `npm install -g serve@14`, replace that install with these lines:
+
+    ```dockerfile
+    RUN mkdir -p /opt/serve \
+     && printf '%s\n' '{"private": true, "dependencies": {"serve": "^14.2.6"}, "overrides": {"compression": "^1.8.2"}}' > /opt/serve/package.json \
+     && npm install --prefix /opt/serve --omit=dev --no-audit --no-fund --loglevel=error \
+     && ln -s /opt/serve/node_modules/.bin/serve /usr/local/bin/serve
+    ```
+
 ---
 
 ## When a finding can't be fixed yet
