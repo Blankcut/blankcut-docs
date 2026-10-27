@@ -28,6 +28,13 @@ the CLI then stores an API key for this machine without ever showing it. See
 | `--no-browser` | Print the URL to open elsewhere instead of opening a browser. |
 | `--device-name <NAME>` | The name this key is listed under in the console. Defaults to the hostname. |
 
+### `blankcut whoami`
+
+Show which organization this machine is signed in to. Every command acts for
+that organization: its projects (including ones created after you signed in),
+billed on its plan. To act for a different organization, run `blankcut login`
+again and choose it. `--json` prints the raw answer.
+
 ### `blankcut configure --api-key <KEY>`
 
 Store a key you were handed directly in `~/.blankcut/config.json`. Prefer

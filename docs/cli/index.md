@@ -115,6 +115,11 @@ can't end up in your shell history, a screenshot or an agent transcript.
   code expires after 15 minutes.
 - The key covers every project in your organization, including ones created
   later. Replace it at any time with `blankcut keys refresh`.
+- Every command acts for the organization you signed in to. Which organization
+  a project belongs to and how it's billed come from your account, not from
+  flags. `blankcut whoami` shows which organization that is. If a command says
+  `API key is not authorized for app`, run it first: the project usually belongs
+  to another organization, or hasn't been connected with `blankcut onboard` yet.
 - If a command fails with `This API key has been replaced`, the key was rotated
   or revoked from the console. Run `blankcut login` again.
 
