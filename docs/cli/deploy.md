@@ -127,6 +127,11 @@ blankcut promote --app my-app
 Meerkat and shows each phase as it runs: analyzing the repo, generating the
 build workflow, building the image, and proposing the deploy.
 
+Deploying needs an active organization with a payment method on file. Without
+one, `promote` stops before it changes anything and says so: add a card at
+[meerkat.blankcut.com/billing](https://meerkat.blankcut.com/billing) and run
+it again. Apps that are already running keep running.
+
 **A finished `promote` means the deploy is proposed, not that it's live.** It
 opens a pull request on your repo (when the build workflow changes) and a
 deploy change on the platform side, and both have to land before the new
