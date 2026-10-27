@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{#
+  Material emits one <link rel="icon"> from theme.favicon (the SVG). These add
+  the fallbacks the SVG can't cover: /favicon.ico, which Google and older
+  browsers request by name (it used to 404 here), and the iPhone home-screen
+  icon. All three are the same centred Blank Cut mark as blankcut.com's.
+#}
+{% block extrahead %}
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+{% endblock %}
