@@ -241,11 +241,12 @@ A deployed app is served at **`https://<app>.blankcut.app`**.
 `blankcut context env` lists every hostname it answers on. To serve it on your
 own name, see [Domains](domains.md).
 
-!!! note "Apps are moving to `.blankcut.app`"
-    Apps used to be served at `<app>.blankcut.com`. Those addresses keep
-    working until 2026-10-28, and after that they redirect to the app's
-    `.blankcut.app` address. Point webhooks, OAuth redirect URIs and API
-    clients at `.blankcut.app` now rather than relying on the redirect.
+!!! note "Apps moved to `.blankcut.app` on 2026-10-28"
+    Apps used to be served at `<app>.blankcut.com`. Since 2026-10-28 those
+    addresses permanently redirect (301) to the app's `.blankcut.app` address,
+    keeping the path and query. Point webhooks, OAuth redirect URIs and API
+    clients at `.blankcut.app` rather than relying on the redirect: a redirect
+    is not reliably followed on a `POST`.
 
 ---
 
