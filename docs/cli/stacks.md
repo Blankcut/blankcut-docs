@@ -12,6 +12,11 @@ manual review.
 - **Python** — Flask, FastAPI, Django.
 - **Go**.
 
+The stack is read from the app's manifest (`package.json`, `requirements.txt`,
+`pyproject.toml`, `Pipfile`, `setup.py` or `go.mod`) at the root of the
+repository, or, since v0.26.1, beside the `Dockerfile` that builds the app
+when it lives in a subfolder such as `client/`.
+
 ## Provided backing services
 
 Use these — don't bring your own:
