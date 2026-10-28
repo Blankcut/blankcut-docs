@@ -50,14 +50,29 @@ packages** and **app dependencies**, because you fix them differently.
 
 The report starts with the app's **policy**:
 
-- **block:** a build with an unwaived finding at the blocking severities
-  (CRITICAL/HIGH) is built but not pushed.
-- **record:** findings are reported and nothing is blocked. Fixing them now
-  means nothing changes for you if blocking is switched on later.
+- **block:** a build is built but not pushed when it **adds** an unwaived
+  CRITICAL/HIGH finding, or when a finding that was already in the running app
+  is **past its fix-by date**. A finding the running app already had doesn't
+  stop the next build before its date.
+- **record:** findings are reported and nothing is blocked. Fixing them by
+  their dates means nothing changes for you if blocking is switched on later.
+
+### Fix-by dates
+
+Each open CRITICAL/HIGH finding gets a **fix-by date three days after the
+platform first sees it**, whether a build found it or the daily re-scan of the
+running app did, for example when a vulnerability is published against a
+package you already ship. `blankcut scan` prints it next to each package, as
+`fix by Oct 31`, or `OVERDUE since Oct 29` once it has passed.
+
+By the date, upgrade the package, or [request a waiver](#when-a-finding-cant-be-fixed-yet)
+if it can't be fixed yet. A waived finding has no fix-by date; its waiver's
+expiry is the date that matters.
 
 Output is JSON when stdout isn't a terminal (or with `--json`), with every
 finding's `id`, `pkg`, `installed` and `fixed` version, `severity`, the `target`
-it was found in, and its `class`.
+it was found in, and its `class`. Open findings also carry `firstSeen` and
+`deadline`.
 
 ---
 
