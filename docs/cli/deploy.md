@@ -138,6 +138,12 @@ deploy change on the platform side, and both have to land before the new
 version runs. The platform checks an app deploy and applies it, usually within
 minutes; if a check doesn't pass, it waits for a Blank Cut engineer.
 
+An app's **first** deploy also waits for its first successful build, because
+until then there is no image to run. Merge the pull request that adds the build
+workflow; when that build goes green, the deploy is checked and applied the same
+way. If the build fails, fix it and push to `main`: the next green build carries
+the deploy through, without running `promote` again.
+
 | Flag | Effect |
 |---|---|
 | `--app <APP>` | Deploy a new version of a registered app. |
@@ -171,6 +177,10 @@ service. It uploads the source and asks Meerkat to build it, and Meerkat picks
 where. Don't add registry credentials or a builder-specific step to it: the
 workflow can't reach the registry by design. Anything about the build you want
 to change belongs in the `Dockerfile`.
+
+When a build fails, the workflow log names the `Dockerfile` step that failed and
+the error it hit, such as a `COPY` of a path the repository doesn't have.
+`docker build .` locally reproduces it with the full output.
 
 Every image is **scanned for known vulnerabilities before it's pushed**, and the
 build log tells you what the scan found. See [Image scanning](scan.md).
