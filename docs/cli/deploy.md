@@ -130,7 +130,9 @@ build workflow, building the image, and proposing the deploy.
 Deploying needs an active organization with a payment method on file. Without
 one, `promote` stops before it changes anything and says so: add a card at
 [meerkat.blankcut.com/billing](https://meerkat.blankcut.com/billing) and run
-it again. Apps that are already running keep running.
+it again. Builds from a push follow the same rule: while your account has no
+card the build log carries a warning, and once the account is suspended new
+builds stop until a card is added. Apps that are already running keep running.
 
 **A finished `promote` means the deploy is proposed, not that it's live.** It
 opens a pull request on your repo (when the build workflow changes) and a
