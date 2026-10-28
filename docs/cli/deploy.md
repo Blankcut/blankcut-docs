@@ -160,11 +160,16 @@ blankcut diagnose --app my-app    # what they mean
 ```
 
 `status` brings the latest GitHub Actions run, the deploy's sync and health
-state, the running pods and recent warnings, and any deploy change still waiting
-into one view. A source that can't be reached right now comes back empty instead
-of failing the whole call. `diagnose` reads the same facts and names the likely
+state, the running pods and recent warnings, and any change still pending into
+one view. A source that can't be reached right now comes back empty instead of
+failing the whole call. `diagnose` reads the same facts and names the likely
 cause, so you get a reason rather than symptoms. A merged pull request is not a
 deploy; `status` is the honest answer.
+
+Under **Pending changes**, each item says what it means for you. A deploy
+waiting on you says exactly what to do: a secret the app reads isn't set (with
+the command that sets it), or the app's first build hasn't succeeded yet.
+Anything else says there's nothing to do on your side.
 
 **If the site loads but every data call fails,** suspect build-time
 configuration before the code: see [Browser-visible

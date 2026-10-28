@@ -138,8 +138,9 @@ Deploy an app. A finished `promote` means the deploy is proposed; check
 ### `blankcut status --app <APP>`
 
 Live status in one view: the latest GitHub Actions run, the deploy's sync and
-health, pod counts and recent warnings, and any deploy change still waiting. A
-source that can't be reached comes back empty instead of failing the call.
+health, pod counts and recent warnings, and any pending change, with what it
+needs from you (usually nothing). A source that can't be reached comes back
+empty instead of failing the call.
 
 ### `blankcut diagnose [--app <APP>]`
 
