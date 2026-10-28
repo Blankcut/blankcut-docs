@@ -122,6 +122,8 @@ can't end up in your shell history, a screenshot or an agent transcript.
   to another organization, or hasn't been connected with `blankcut onboard` yet.
 - If a command fails with `This API key has been replaced`, the key was rotated
   or revoked from the console. Run `blankcut login` again.
+- If you're removed from an organization, the keys you hold for it stop working
+  straight away. An owner can invite you back; then run `blankcut login`.
 
 !!! warning "Keep `~/.blankcut/config.json` private"
     Never commit it, and never paste an API key into chat, a pull request,
