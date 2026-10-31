@@ -39,9 +39,12 @@ It reports two views:
 - **Last build:** the scan of the most recent build, including one the scan
   blocked from being pushed.
 - **Running now:** the scheduled re-scan of the images actually serving traffic.
-  A finding here that isn't in the last build is a vulnerability published since
-  the image was built; a rebuild picks up its fix (for an OS package, only if
-  your `Dockerfile` refreshes them on every build, as in the tip below).
+  Findings here that aren't in the last build, usually vulnerabilities published
+  since that build, are listed package by package like the build's. A finding in
+  both is listed once, under the last build. An app that runs more than one image
+  has each image's findings under its name. A rebuild alone clears one of these
+  only for an OS package, and only if your `Dockerfile` refreshes packages on
+  every build (see the tip below); an app dependency needs its version raised.
 
 Findings are grouped by the package upgrade that fixes them, and each package
 names **one version to upgrade to**: the lowest fix on the release line you're
@@ -63,7 +66,9 @@ Each open CRITICAL/HIGH finding gets a **fix-by date three days after the
 platform first sees it**, whether a build found it or the daily re-scan of the
 running app did, for example when a vulnerability is published against a
 package you already ship. `blankcut scan` prints it next to each package, as
-`fix by Oct 31`, or `OVERDUE since Oct 29` once it has passed.
+`fix by Oct 31`, or `OVERDUE since Oct 29` once it has passed. Before v0.27.1,
+findings only the re-scan had seen were a count under *Running now*, with no
+package or date; run `blankcut upgrade` to see them listed.
 
 By the date, upgrade the package, or [request a waiver](#when-a-finding-cant-be-fixed-yet)
 if it can't be fixed yet. A waived finding has no fix-by date; its waiver's
