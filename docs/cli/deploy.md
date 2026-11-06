@@ -208,6 +208,16 @@ the app's ingress and secrets, as they are.
 - An image pushed isn't proof of a rollout: check `blankcut status` and load the
   site afterwards.
 
+**Adding an app to a repository that already builds one.** `blankcut onboard
+--name <app>` registers the new app and opens its setup pull request, but
+leaves the repository's build workflow and its `BLANKCUT_API_KEY` secret as
+they are. Both belong to the app that is already there, and it keeps building.
+The new app builds once the workflow has an entry for its image in its build
+matrix, with the workflow's `APP_NAME` unchanged. The setup pull request says
+the same, and the Blank Cut team can set up the entry with you. `--database`
+isn't available for a second app in a repository: onboard without it, then ask
+Blank Cut to add the database.
+
 ---
 
 ## Rough Cut and production
