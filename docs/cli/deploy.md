@@ -36,8 +36,8 @@ when the app gets a database. It never overwrites a file you already have. It
 also gives the repository the CI key its build uses, so you don't have to set
 one up. The build workflow itself arrives with your first `promote`.
 
-**It doesn't deploy anything.** When it finishes, it prints the next three
-steps:
+**It doesn't deploy anything.** When it finishes, it prints what onboarding
+found, then the next three steps:
 
 ```bash
 # 1. Review and merge the setup pull request
@@ -46,6 +46,11 @@ blankcut secrets push --app my-app
 # 3. Deploy
 blankcut promote --app my-app
 ```
+
+If the repository already has every file the setup pull request would add,
+none is opened, and the steps start at the secrets. If it already builds
+another app, the last step is different: see
+[Several apps from one repository](#several-apps-from-one-repository).
 
 | Flag | Effect |
 |---|---|
@@ -202,7 +207,10 @@ the app's ingress and secrets, as they are.
 - Run it from a clean checkout that matches the repository's current `main`.
   Only committed files are uploaded; local secret files are left out.
 - The committed build workflow needs exactly one build entry for the app's
-  image, with an explicit `Dockerfile`.
+  image, with an explicit `Dockerfile`. That's the workflow Blank Cut
+  generates, `.github/workflows/build-and-push.yml` (since v0.27.2), or a
+  hand-written `.github/workflows/build_and_push.yml`. With both committed it
+  stops rather than guess which one builds the app.
 - `--dry-run` prints the one image it would build and the `Dockerfile` it would
   use, without uploading or building anything.
 - An image pushed isn't proof of a rollout: check `blankcut status` and load the
@@ -214,9 +222,11 @@ leaves the repository's build workflow and its `BLANKCUT_API_KEY` secret as
 they are. Both belong to the app that is already there, and it keeps building.
 The new app builds once the workflow has an entry for its image in its build
 matrix, with the workflow's `APP_NAME` unchanged. The setup pull request says
-the same, and the Blank Cut team can set up the entry with you. `--database`
-isn't available for a second app in a repository: onboard without it, then ask
-Blank Cut to add the database.
+the same, and the Blank Cut team can set up the entry with you. `onboard` says
+so when it finishes, and its last step is that entry, or asking Blank Cut,
+instead of `promote`, since there's no image to deploy until it exists.
+`--database` isn't available for a second app in a repository: onboard without
+it, then ask Blank Cut to add the database.
 
 ---
 
