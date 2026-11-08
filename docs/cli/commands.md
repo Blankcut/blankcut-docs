@@ -129,7 +129,7 @@ Deploy an app. A finished `promote` means the deploy is proposed; check
 
 | Flag | Effect |
 |---|---|
-| `--app <APP>` | Deploy a new version of a registered app. |
+| `--app <APP>` | Deploy a registered app: its first deploy after `onboard`, or a new version. |
 | `--repo <URL>` | Register and deploy a repository Meerkat hasn't seen before. |
 | `--dry-run` | Show the deploy change and the secret keys it would change, without writing anything. |
 | `--to-production` | Move a Rough Cut app to production before deploying (needs `--app`). |

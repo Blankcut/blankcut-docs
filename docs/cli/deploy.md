@@ -49,8 +49,10 @@ blankcut promote --app my-app
 
 If the repository already has every file the setup pull request would add,
 none is opened, and the steps start at the secrets. If it already builds
-another app, the last step is different: see
-[Several apps from one repository](#several-apps-from-one-repository).
+another app, there's a step before `promote`: see
+[Several apps from one repository](#several-apps-from-one-repository). An app
+connected under a name of its own (`--name`) deploys the same way, with
+`blankcut promote --app <name>` (v0.28.0 and later).
 
 | Flag | Effect |
 |---|---|
@@ -200,9 +202,36 @@ build log tells you what the scan found. See [Image scanning](scan.md).
 ### Several apps from one repository
 
 Some repositories build more than one app (for example a set of sites built from
-one codebase). When an app's registered name differs from its repository's,
-`promote --app` rebuilds **only that app's image** and leaves the others, and
-the app's ingress and secrets, as they are.
+one codebase). One workflow builds them all, through one app's key: the workflow
+keeps that app's `APP_NAME`, and each app's image is an entry in its build
+matrix (`strategy.matrix.include`), with the image's `image_name` and
+`dockerfile`.
+
+**Adding an app to a repository that already builds one.**
+
+1. `blankcut onboard --name <app>` registers the new app and opens its setup
+   pull request. It leaves the repository's build workflow and its
+   `BLANKCUT_API_KEY` secret as they are: both belong to the app that is already
+   there, and it keeps building.
+2. Add the new app's entry to that workflow's build matrix, with
+   `image_name: <app>` and the path of its `dockerfile`, and leave the
+   workflow's `APP_NAME` as it is. The setup pull request explains this, and the
+   Blank Cut team can set up the entry with you.
+3. List the secrets the new app reads in a `.env.example` beside its
+   `Dockerfile`, and set them with `blankcut secrets push --app <app>`. Without
+   that file the app reads the repository's `.env.example`, which lists the
+   other app's secrets, and every key in it would have to be set before the new
+   app starts.
+4. `blankcut promote --app <app>` deploys it (v0.28.0 and later). Until the
+   entry is on `main`, it says what's missing and deploys nothing.
+
+`onboard` lists the same steps when it finishes. `--database` isn't available
+for a second app in a repository: onboard without it, then ask Blank Cut to add
+the database.
+
+**Redeploying one of them.** Once such an app is deployed, `promote --app`
+rebuilds **only that app's image** and leaves the others, and the app's ingress
+and secrets, as they are.
 
 - Run it from a clean checkout that matches the repository's current `main`.
   Only committed files are uploaded; local secret files are left out.
@@ -215,18 +244,6 @@ the app's ingress and secrets, as they are.
   use, without uploading or building anything.
 - An image pushed isn't proof of a rollout: check `blankcut status` and load the
   site afterwards.
-
-**Adding an app to a repository that already builds one.** `blankcut onboard
---name <app>` registers the new app and opens its setup pull request, but
-leaves the repository's build workflow and its `BLANKCUT_API_KEY` secret as
-they are. Both belong to the app that is already there, and it keeps building.
-The new app builds once the workflow has an entry for its image in its build
-matrix, with the workflow's `APP_NAME` unchanged. The setup pull request says
-the same, and the Blank Cut team can set up the entry with you. `onboard` says
-so when it finishes, and its last step is that entry, or asking Blank Cut,
-instead of `promote`, since there's no image to deploy until it exists.
-`--database` isn't available for a second app in a repository: onboard without
-it, then ask Blank Cut to add the database.
 
 ---
 
