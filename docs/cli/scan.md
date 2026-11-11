@@ -164,6 +164,11 @@ blankcut scan waivers     # this app's waivers and where each stands
 - A request changes nothing until the team approves it, and they're notified
   when you file it. Approvals usually expire, so the finding comes back for
   another look.
+- To keep a waiver past its expiry date, request it again in its **last 14
+  days**, saying why the finding still can't be fixed. The approval stays in
+  force while the team reviews the renewal, so your builds aren't blocked in
+  between. A request made earlier than that is refused, with the date from
+  which you can renew.
 
 `blankcut scan waivers` lists the app's waivers: pending, approved, expired,
 rejected and revoked.
