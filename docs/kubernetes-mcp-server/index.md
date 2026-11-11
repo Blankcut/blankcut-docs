@@ -3,20 +3,19 @@
 The Kubernetes MCP Server is an open-source Go service that answers questions
 about a Kubernetes cluster with Claude. It reads from the Kubernetes API, and
 optionally from ArgoCD and GitLab, gathers what's relevant to a question, sends
-it to the Claude API, and returns Claude's analysis. Everything is exposed as a
-plain **REST API** over HTTP.
+it to the Claude API, and returns Claude's analysis. It is a **REST API** over
+HTTP, and an **MCP server** your own AI assistant can connect to.
 
 - Source: [github.com/Blankcut/kubernetes-mcp-server](https://github.com/Blankcut/kubernetes-mcp-server) (MIT licence)
-- Current release: **v1.4.0**
+- Current release: **v1.5.0**
 - Docker image: [`blankcut/kubernetes-mcp-server`](https://hub.docker.com/r/blankcut/kubernetes-mcp-server) (`linux/amd64`, `linux/arm64`)
 
-!!! note "About the name"
-    "MCP" comes from the Model Context Protocol, but this server does **not**
-    implement the MCP wire protocol. There is no JSON-RPC transport (stdio, SSE
-    or streamable HTTP) and no `tools/list`, so MCP clients such as Claude
-    Desktop or Claude Code can't connect to it directly. You call it over HTTP
-    like any other API. The `/api/v1/mcp/*` endpoints are the ones that gather
-    cluster context and ask Claude about it. See [How it works](model-context-protocol.md).
+!!! note "REST API and MCP server"
+    The server is a REST API and, since v1.5.0, also a Model Context Protocol
+    server. An MCP client such as Claude Code connects to `/mcp` and calls the
+    cluster reads as tools; see [Connect an MCP client](mcp-clients.md). The
+    `/api/v1/mcp/*` REST endpoints are a different thing: they gather cluster
+    context and ask Claude about it for you. See [How it works](model-context-protocol.md).
 
 ---
 

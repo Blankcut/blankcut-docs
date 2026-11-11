@@ -9,11 +9,14 @@ collects, what Claude receives, and where the limits are.
 ## The name
 
 The project takes its name from the Model Context Protocol, the idea of giving a
-model structured context about a system. It doesn't implement the protocol
-itself: there's no JSON-RPC transport and no tool discovery, so an MCP client
-such as Claude Desktop or Claude Code can't connect to it. It's a REST API. To
-use it from an AI assistant, give the assistant a way to make HTTP requests to
-it, such as a script or `curl`.
+model structured context about a system. Until v1.5.0 it didn't implement the
+protocol itself. It now does: an MCP client connects to `/mcp` and calls the
+server's cluster reads as tools. See [Connect an MCP client](mcp-clients.md).
+
+The two surfaces do different jobs. Over **REST**, the server collects the facts
+and asks Claude for you, using its own Claude credentials. Over **MCP**, your
+assistant is the model: the server hands it the facts and calls Claude for
+nothing.
 
 ---
 

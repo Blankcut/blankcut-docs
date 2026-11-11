@@ -97,6 +97,7 @@ nav:
       - Installation: kubernetes-mcp-server/installation.md
       - Configuration: kubernetes-mcp-server/configuration.md
       - API reference: kubernetes-mcp-server/api-overview.md
+      - Connect an MCP client: kubernetes-mcp-server/mcp-clients.md
       - Troubleshooting: kubernetes-mcp-server/troubleshooting-resources.md
       - How it works: kubernetes-mcp-server/model-context-protocol.md
   # Each additional tool/product gets its own folder under docs/ and a block here.

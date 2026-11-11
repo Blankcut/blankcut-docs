@@ -21,7 +21,7 @@ Release binaries are published for Linux and macOS on `amd64` and `arm64`.
 This picks the right one and checks it against the published checksums:
 
 ```bash
-VERSION=v1.4.0
+VERSION=v1.5.0
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')          # linux or darwin
 ARCH=$(uname -m)
 [ "$ARCH" = x86_64 ] && ARCH=amd64
