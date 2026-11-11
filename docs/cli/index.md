@@ -175,16 +175,17 @@ A Homebrew install is updated with `brew upgrade blankcut`; `blankcut upgrade`
 tells you so instead of overwriting it. `blankcut upgrade --force` reinstalls
 even when you're already on the latest release.
 
-**Then refresh your repo's `CLAUDE.md`:**
+**Then refresh your repo's guidance for coding agents:**
 
 ```bash
 blankcut sync
 ```
 
-Every repo connected to Meerkat carries a platform block in its `CLAUDE.md`,
+Every repo connected to Meerkat carries a platform block in its `AGENTS.md`,
 including the list of commands the CLI ships, for coding agents to read. `sync`
-rewrites that block from the binary you now have. It runs offline, needs no API
-key, and touches only the text between the `BLANKCUT PLATFORM` markers. See
+rewrites that block, and the guides that go with it, from the binary you now
+have. It runs offline, needs no API key, and in your own files touches only the
+text between the `BLANKCUT PLATFORM` markers. See
 [Coding agents](agents.md) for why this matters.
 
 ---

@@ -31,7 +31,7 @@ blankcut onboard
 
 `onboard` registers the app to your organization and opens a **setup pull
 request** with the platform layout: a `Dockerfile`, `docker-compose.yml`,
-`.env.example` and a `CLAUDE.md` for coding agents, plus a migrations workflow
+`.env.example` and an `AGENTS.md` for coding agents, plus a migrations workflow
 when the app gets a database. It never overwrites a file you already have. It
 also gives the repository the CI key its build uses, so you don't have to set
 one up. The build workflow itself arrives with your first `promote`.
@@ -97,8 +97,8 @@ blankcut provision --name my-app --owner my-github-org
 ```
 
 `provision` creates a repository in your GitHub organization, seeded with a
-runnable starter: backing services already wired in, a `/health` endpoint, and a
-`CLAUDE.md` that keeps a coding agent on the supported stack. It registers the
+runnable starter: backing services already wired in, a `/health` endpoint, and an
+`AGENTS.md` that keeps a coding agent on the supported stack. It registers the
 app and provisions its backing services. **The starter deploys on its own** once
 its first image builds; watch it with `blankcut status --app my-app`. Then clone
 the repo and ship your changes with `blankcut promote --app my-app`.

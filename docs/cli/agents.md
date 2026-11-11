@@ -6,21 +6,37 @@ the agent itself.
 
 ---
 
-## The repo's `CLAUDE.md` is the agent's rulebook
+## The repo's `AGENTS.md` is the agent's rulebook
 
 Every repository connected to Meerkat carries a platform block in its
-`CLAUDE.md`, between `BLANKCUT PLATFORM` markers. It tells an agent what the CLI
+`AGENTS.md`, between `BLANKCUT PLATFORM` markers. It tells an agent what the CLI
 can do and the rules that apply in that repo. **Inside a connected repo, that
 block is the binding source**; these pages are its public, browsable version.
 
+`AGENTS.md` is the file Codex, Cursor, Copilot and Claude Code all read, so
+whichever agent you use gets the same rules. Three things make up the guidance:
+
+| In your repo | What it is |
+|---|---|
+| `AGENTS.md` | The platform block: the rules, the list of commands, and one always-true rule per topic. |
+| `CLAUDE.md` | A few lines, between the same markers, that load `AGENTS.md` for Claude Code. Claude Code reads only `CLAUDE.md` when a repo has one. |
+| `.agents/skills/blankcut/` | The `blankcut` skill: a guide per topic (deploying, secrets, storage, scheduled jobs, vulnerability findings, domains and more). An agent loads a guide when a task needs it. `.claude/skills/blankcut/` holds the same skill where Claude Code looks for it. |
+
 The block is the same in every repo and is owned by Blank Cut. Don't edit inside
-the markers, since `init` and `sync` overwrite them. Put repo-specific notes
-above or below the block, where they're always kept.
+the markers, or the skill's files, since `init` and `sync` overwrite them. Put
+repo-specific notes above or below the block, where they're always kept.
+
+!!! note "Coming from a block in `CLAUDE.md`"
+    Before CLI v0.29.0 the whole block lived in `CLAUDE.md`, which only Claude
+    Code reads. `blankcut sync` moves it: the block goes to `AGENTS.md`, and
+    `CLAUDE.md` keeps everything you wrote in it plus the lines that load
+    `AGENTS.md`. Commit the result. If you don't run `sync`, the platform opens
+    a pull request that makes the same change.
 
 Keep it current with `blankcut sync`. The block includes the list of commands
 the CLI ships, and it also tells agents not to invent commands, so a stale list
 makes an agent conclude a capability doesn't exist when it shipped weeks ago.
-`blankcut sync --check` exits `1` when the block is behind your binary, which
+`blankcut sync --check` exits `1` when any of it is behind your binary, which
 makes a good CI gate.
 
 ---
@@ -30,7 +46,7 @@ makes a good CI gate.
 ```bash
 blankcut upgrade --check    # what's new since this build; installs nothing
 blankcut upgrade            # only if an update was reported
-blankcut sync               # refresh the CLAUDE.md block from the binary you now have
+blankcut sync               # refresh AGENTS.md and the guides from the binary you now have
 ```
 
 Then, before writing code that touches infrastructure:

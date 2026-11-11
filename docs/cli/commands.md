@@ -56,11 +56,13 @@ reinstalls even when you're up to date. A Homebrew install is upgraded with
 
 ### `blankcut sync`
 
-Rewrite the platform block in this repo's `CLAUDE.md` from the copy built into
-your binary, so the guidance a coding agent reads matches the CLI you have.
-Offline, no API key, and only the text between the `BLANKCUT PLATFORM` markers is
-touched. Run it after every upgrade. `--check` reports whether the block is
-stale and exits `1` without writing, for use as a CI gate.
+Rewrite the platform's guidance for coding agents in this repo from the copy
+built into your binary, so what an agent reads matches the CLI you have: the
+block in `AGENTS.md`, the lines in `CLAUDE.md` that load it for Claude Code, and
+the `blankcut` skill. Offline, no API key. In `AGENTS.md` and `CLAUDE.md` only the
+text between the `BLANKCUT PLATFORM` markers is touched. Run it after every
+upgrade. `--check` reports whether anything is stale and exits `1` without
+writing, for use as a CI gate. See [Coding agents](agents.md).
 
 ### `blankcut completion bash|zsh|fish|powershell`
 
@@ -104,7 +106,7 @@ exists.**
 
 Write the platform layout into the current directory. Never overwrites a file;
 adds missing entries to `.env.example` and `.gitignore` and refreshes the
-platform block in `CLAUDE.md`. Registers and deploys nothing. `--name` sets the
+platform's guidance for coding agents (`AGENTS.md` and the `blankcut` skill). Registers and deploys nothing. `--name` sets the
 app name (the directory name by default).
 
 ### `blankcut validate`

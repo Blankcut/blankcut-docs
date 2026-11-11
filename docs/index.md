@@ -41,7 +41,7 @@ takes care of <span id="bc-rotator" class="bc-rotator">builds and deploys</span>
 </div>
 
 !!! note "For coding agents"
-    Working in a repo connected to Meerkat? That repo's `CLAUDE.md` is the
+    Working in a repo connected to Meerkat? That repo's `AGENTS.md` is the
     binding source of truth; these pages are its public, browsable version. Run
     `blankcut upgrade --check` and `blankcut sync` at the start of any session
     that uses the CLI. See [Coding agents](cli/agents.md).
