@@ -4,8 +4,8 @@
 platform), the `blankcut` CLI that drives it, and Blank Cut's other public tools,
 served at **[docs.blankcut.com](https://docs.blankcut.com)**.
 
-Built with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) and
-deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to
+Built with [Zensical](https://zensical.org) (the successor to Material for
+MkDocs; it reads the same `mkdocs.yml`) and deployed to GitHub Pages by `.github/workflows/deploy.yml` on every push to
 `main`.
 
 ## Structure
@@ -33,6 +33,10 @@ Never include secret **values** in any page.
 
 ```bash
 pip install -r requirements.txt
-mkdocs serve        # live preview at http://127.0.0.1:8000
-mkdocs build --strict
+zensical serve            # live preview at http://127.0.0.1:8000
+zensical build --strict
+llmstxt-standalone build  # llms.txt + a Markdown copy of each page, into site/
 ```
+
+`llms.txt` and the `.md` copies exist only in a built `site/`; `zensical serve`
+does not show them.

@@ -1,1 +1,8 @@
-mkdocs-material>=9.5
+# The site is built with Zensical, the successor to Material for MkDocs (which
+# gets critical fixes only until 2027-05-05). Zensical reads mkdocs.yml as it is.
+# Pinned: Zensical is in beta and releases weekly. To go back, put
+# `mkdocs-material>=9.5` here and `mkdocs build --strict` in the workflow.
+zensical==0.1.1
+# Writes llms.txt, llms-full.txt and a Markdown copy of every page into site/,
+# for coding agents. A post-build step, because Zensical has no plugin for it.
+llmstxt-standalone==0.2.0

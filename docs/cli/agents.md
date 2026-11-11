@@ -100,3 +100,17 @@ in `blankcut --help`, it doesn't exist. Ask rather than guess.
   Tell the person when you file one. See [Image scanning](scan.md).
 - **Stay on the supported stack.** No new languages, frameworks or
   infrastructure the platform doesn't run. See [Supported stacks](stacks.md).
+
+---
+
+## These docs as plain text
+
+An agent can read this site without parsing the web pages:
+
+- [`/llms.txt`](https://docs.blankcut.com/llms.txt) lists every page with a link
+  to a Markdown copy of it.
+- [`/llms-full.txt`](https://docs.blankcut.com/llms-full.txt) is the whole site
+  in one file.
+- Every page also has a Markdown copy at its own address plus `index.md`, for
+  example `https://docs.blankcut.com/cli/secrets/index.md`.
+
