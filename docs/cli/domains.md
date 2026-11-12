@@ -75,6 +75,11 @@ ALIAS, ANAME or CNAME flattening, point the bare domain at us that way;
 otherwise forward it to `www`. Simpler still: [transfer it in](#transfer-a-domain-in)
 and we handle all of it.
 
+**A subdomain of a domain Blank Cut already hosts for you** (`shop.example.com`
+when `example.com` was bought or transferred here) is attached the same way,
+and there's nothing to add anywhere: we write its records in that domain's DNS
+ourselves. `status` shows it moving from certificate to live.
+
 ---
 
 ## Transfer a domain in

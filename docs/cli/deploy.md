@@ -212,13 +212,17 @@ matrix (`strategy.matrix.include`), with the image's `image_name` and
 1. `blankcut onboard --name <app>` registers the new app and opens its setup
    pull request. It leaves the repository's build workflow and its
    `BLANKCUT_API_KEY` secret as they are: both belong to the app that is already
-   there, and it keeps building.
+   there, and it keeps building. This works for a repository Blank Cut hosts for
+   you in its own GitHub organization too, as long as every app already built
+   from it belongs to your organization.
 2. Add the new app's entry to that workflow's build matrix, with
    `image_name: <app>` and the path of its `dockerfile`, and leave the
    workflow's `APP_NAME` as it is. The setup pull request explains this, and the
-   Blank Cut team can set up the entry with you.
+   Blank Cut team can set up the entry with you. If the entry is already there,
+   `onboard` says so and there's nothing to add.
 3. List the secrets the new app reads in a `.env.example` beside its
-   `Dockerfile`, and set them with `blankcut secrets push --app <app>`. Without
+   `Dockerfile`, and set them with `blankcut secrets push --app <app>`, run from
+   that directory so the CLI checks your file against that list. Without
    that file the app reads the repository's `.env.example`, which lists the
    other app's secrets, and every key in it would have to be set before the new
    app starts.
