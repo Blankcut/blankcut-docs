@@ -78,7 +78,9 @@ and we handle all of it.
 **A subdomain of a domain Blank Cut already hosts for you** (`shop.example.com`
 when `example.com` was bought or transferred here) is attached the same way,
 and there's nothing to add anywhere: we write its records in that domain's DNS
-ourselves. `status` shows it moving from certificate to live.
+ourselves. When `example.com`'s certificate already covers the name (a wildcard,
+`*.example.com`), the subdomain uses it and goes live without waiting for a new
+one. It isn't billed on top of `example.com`. `status` shows how far along it is.
 
 ---
 
