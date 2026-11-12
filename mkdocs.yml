@@ -90,6 +90,7 @@ nav:
       - Domains: cli/domains.md
       - Supported stacks: cli/stacks.md
       - Coding agents: cli/agents.md
+      - Claude and other AI apps: cli/connector.md
       - Command reference: cli/commands.md
   - Kubernetes MCP Server:
       - kubernetes-mcp-server/index.md
