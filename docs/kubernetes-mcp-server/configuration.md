@@ -346,6 +346,76 @@ including retries. Use it while you diagnose a problem, not all the time.
 
 ---
 
+## Report model usage
+
+*v1.6.0 and later.* Each call the server makes to Claude can be reported as one
+OpenTelemetry span, in the
+[GenAI semantic conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/),
+to any OTLP/HTTP receiver: an OpenTelemetry Collector, or a backend that takes
+OTLP directly. Reporting is off until you set an endpoint, with the standard
+variables:
+
+```bash
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318        # /v1/traces is appended
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer $OTLP_TOKEN" # if the receiver wants one
+```
+
+A span says:
+
+- which model was asked and which model answered;
+- how many tokens the call used: `gen_ai.usage.input_tokens` (which includes
+  cached tokens), `gen_ai.usage.output_tokens`, and the cache read and write
+  counts;
+- how long the call took, and `error.type` if it failed;
+- which analysis it was for, in `kubernetes_mcp_server.analysis`: `resource`,
+  `namespace`, `troubleshoot` or `merge_request`.
+
+A span never carries a prompt, a response, or anything read from the cluster.
+[MCP tool calls](mcp-clients.md) make no model call, so they report nothing.
+
+| Variable | Effect |
+|---|---|
+| `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` | The full URL to send to, used as given. Wins over the next one. |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | A base URL; `/v1/traces` is appended. |
+| `OTEL_EXPORTER_OTLP_HEADERS`, `OTEL_EXPORTER_OTLP_TRACES_HEADERS` | `name=value` pairs, comma-separated, sent with every export. The values are never logged. |
+| `OTEL_EXPORTER_OTLP_TIMEOUT`, `OTEL_EXPORTER_OTLP_TRACES_TIMEOUT` | Milliseconds for one export. Default `5000`. |
+| `OTEL_SERVICE_NAME`, `OTEL_RESOURCE_ATTRIBUTES` | How the server describes itself. `service.name` defaults to `kubernetes-mcp-server`. In a pod, `k8s.namespace.name` and `k8s.pod.name` are filled in unless you set them. |
+| `OTEL_SDK_DISABLED` | `true` turns reporting off, whatever else is set. |
+
+Reporting cannot slow or fail a request. Spans are queued and sent in the
+background. If the receiver is down they are dropped, and the log gets at most
+one warning a minute.
+
+Spans are sent as OTLP/HTTP JSON. OTLP over gRPC
+(`OTEL_EXPORTER_OTLP_PROTOCOL=grpc`, usually port 4317) is not supported. If
+you ask for it, the server logs the warning `Model call reporting is off` at
+startup, with the reason, and runs without reporting. Point the endpoint at the
+receiver's HTTP port, usually 4318.
+
+### With the Helm chart
+
+Set the variables through `extraEnv`. If the receiver wants a token, keep it in
+a Secret and let Kubernetes put it into the header: `$(NAME)` expands a
+variable defined earlier in the list.
+
+```yaml
+extraEnv:
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: http://otel-collector.observability:4318
+  - name: OTLP_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: otlp-credentials
+        key: token
+  - name: OTEL_EXPORTER_OTLP_HEADERS
+    value: "Authorization=Bearer $(OTLP_TOKEN)"
+```
+
+When reporting is on, the server logs `Reporting model calls as OpenTelemetry
+spans` at startup, with the endpoint and the names of the headers it will send.
+
+---
+
 ## Timeouts and retries
 
 | Call | Timeout | Retries |

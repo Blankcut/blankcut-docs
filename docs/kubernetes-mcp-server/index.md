@@ -7,7 +7,7 @@ it to the Claude API, and returns Claude's analysis. It is a **REST API** over
 HTTP, and an **MCP server** your own AI assistant can connect to.
 
 - Source: [github.com/Blankcut/kubernetes-mcp-server](https://github.com/Blankcut/kubernetes-mcp-server) (MIT licence)
-- Current release: **v1.5.0**
+- Current release: **v1.6.0**
 - Docker image: [`blankcut/kubernetes-mcp-server`](https://hub.docker.com/r/blankcut/kubernetes-mcp-server) (`linux/amd64`, `linux/arm64`)
 
 !!! note "REST API and MCP server"
