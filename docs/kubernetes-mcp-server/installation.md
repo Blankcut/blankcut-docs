@@ -26,7 +26,7 @@ release's image.
 ```bash
 git clone https://github.com/Blankcut/kubernetes-mcp-server.git
 cd kubernetes-mcp-server
-git checkout v1.6.0
+git checkout v1.6.1
 ```
 
 ### 1. Install
@@ -197,7 +197,7 @@ credential ends up in it. Create the Secret as shown in step 2.
 ## Docker
 
 Images are on Docker Hub as `blankcut/kubernetes-mcp-server`, for `linux/amd64`
-and `linux/arm64`. Each release is tagged with its full version (`1.6.0`), its
+and `linux/arm64`. Each release is tagged with its full version (`1.6.1`), its
 minor and major versions (`1.6`, `1`), `latest`, and `sha-<commit>`. Pin the
 full version.
 
