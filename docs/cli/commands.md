@@ -252,6 +252,24 @@ Call one of your app's own endpoints on a schedule. See
 
 ---
 
+## AI spend
+
+### `blankcut spend [status|on|off] --app <APP>`
+
+What an app's calls to AI models cost, per model and per day, as estimates at
+the providers' list prices. See [AI spend](spend.md).
+
+| Command | Effect |
+|---|---|
+| `blankcut spend --app <APP>` | The figures for the last 30 days. `--days` takes 1 to 90. |
+| `blankcut spend status --app <APP>` | Whether monitoring is on, and how many included apps are monitored. |
+| `blankcut spend on --app <APP>` | Turn monitoring on. Deploy afterwards. |
+| `blankcut spend off --app <APP>` | Turn it off. |
+
+Every form takes `--json`.
+
+---
+
 ## Image scanning
 
 ### `blankcut scan [--app <APP>] [--json]`

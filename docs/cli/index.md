@@ -3,7 +3,8 @@
 `blankcut` is the Blank Cut CLI: the command-line tool that connects a repository
 to Meerkat. With it you connect a repo or create a new project, deploy it, read
 the environment it actually runs in, manage its secrets, files, scheduled jobs
-and domains, see what its image scan found, and check live status.
+and domains, see what its image scan found and what its AI model calls cost,
+and check live status.
 
 There are two kinds of commands:
 

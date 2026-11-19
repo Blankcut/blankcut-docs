@@ -86,6 +86,7 @@ nav:
       - Secrets: cli/secrets.md
       - File storage: cli/storage.md
       - Scheduled jobs: cli/schedule.md
+      - AI spend: cli/spend.md
       - Image scanning: cli/scan.md
       - Domains: cli/domains.md
       - Supported stacks: cli/stacks.md
